@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Heart, ArrowLeft, Share2, MessageCircle, Star } from "lucide-react";
+import { Heart, ArrowLeft, Share2, MessageCircle, Star, ChevronRight } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
 
@@ -26,6 +26,12 @@ export default function ProductDetail() {
   // Fetch comments
   const { data: comments = [] } = trpc.comments.getByProduct.useQuery(
     { productId },
+    { enabled: !!product }
+  );
+
+  // Fetch similar products
+  const { data: similarProducts } = trpc.products.getSimilar.useQuery(
+    { productId, limit: 5 },
     { enabled: !!product }
   );
 
@@ -239,6 +245,42 @@ export default function ProductDetail() {
           </div>
         </div>
 
+        {/* Similar Products Section */}
+        {similarProducts && similarProducts.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+              <span>Similar Products</span>
+              <span className="text-sm text-amber-500 font-normal">Powered by SigLIP</span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {similarProducts.map((similar: any) => (
+                <Card
+                  key={similar.id}
+                  onClick={() => navigate(`/product/${similar.id}`)}
+                  className="bg-slate-800 border-slate-700 overflow-hidden hover:border-amber-500 cursor-pointer transition-all group"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-slate-900">
+                    <img
+                      src={similar.imageUrl || "https://via.placeholder.com/300?text=No+Image"}
+                      alt={similar.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <div className="absolute top-2 right-2 bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">
+                      {(similar.similarity * 100).toFixed(0)}%
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h4 className="font-semibold text-white text-sm line-clamp-2 mb-2">
+                      {similar.name}
+                    </h4>
+                    <p className="text-amber-400 font-bold text-sm">{similar.price}</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Comments Section */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-white mb-6">Reviews & Comments</h2>
@@ -253,7 +295,7 @@ export default function ProductDetail() {
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                      {comment.rating !== null && (
+                    {comment.rating !== null && (
                       <div className="flex gap-1">
                         {[...Array(5)].map((_, i) => (
                           <Star
