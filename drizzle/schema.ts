@@ -1,4 +1,5 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal } from "drizzle-orm/mysql-core";
+import { relations } from "drizzle-orm";
 
 /**
  * Core user table backing auth flow.
@@ -25,4 +26,105 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+// Categories table
+export const categories = mysqlTable("categories", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = typeof categories.$inferInsert;
+
+// Sellers table
+export const sellers = mysqlTable("sellers", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  storeName: varchar("storeName", { length: 255 }).notNull(),
+  description: text("description"),
+  whatsappPhone: varchar("whatsappPhone", { length: 20 }),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+  totalSales: int("totalSales").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Seller = typeof sellers.$inferSelect;
+export type InsertSeller = typeof sellers.$inferInsert;
+
+// Products table
+export const products = mysqlTable("products", {
+  id: int("id").autoincrement().primaryKey(),
+  sellerId: int("sellerId").notNull(),
+  categoryId: int("categoryId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  price: varchar("price", { length: 20 }).notNull(),
+  imageUrl: text("imageUrl"),
+  stock: int("stock").default(0),
+  source: varchar("source", { length: 100 }).default("nairobi_market"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = typeof products.$inferInsert;
+
+// Comments/Reviews table
+export const comments = mysqlTable("comments", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  userId: int("userId").notNull(),
+  rating: int("rating"),
+  text: text("text"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Comment = typeof comments.$inferSelect;
+export type InsertComment = typeof comments.$inferInsert;
+
+// Favorites table
+export const favorites = mysqlTable("favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  productId: int("productId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Favorite = typeof favorites.$inferSelect;
+export type InsertFavorite = typeof favorites.$inferInsert;
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  sellers: many(sellers),
+  comments: many(comments),
+  favorites: many(favorites),
+}));
+
+export const sellersRelations = relations(sellers, ({ one, many }) => ({
+  user: one(users, { fields: [sellers.userId], references: [users.id] }),
+  products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  seller: one(sellers, { fields: [products.sellerId], references: [sellers.id] }),
+  category: one(categories, { fields: [products.categoryId], references: [categories.id] }),
+  comments: many(comments),
+  favorites: many(favorites),
+}));
+
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  products: many(products),
+}));
+
+export const commentsRelations = relations(comments, ({ one }) => ({
+  product: one(products, { fields: [comments.productId], references: [products.id] }),
+  user: one(users, { fields: [comments.userId], references: [users.id] }),
+}));
+
+export const favoritesRelations = relations(favorites, ({ one }) => ({
+  product: one(products, { fields: [favorites.productId], references: [products.id] }),
+  user: one(users, { fields: [favorites.userId], references: [users.id] }),
+}));

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, products, categories, sellers, comments, favorites } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,59 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Products queries
+export async function getProducts(limit: number = 20, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(products).limit(limit).offset(offset);
+}
+
+export async function getProductsByCategory(categoryId: number, limit: number = 20, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(products).where(eq(products.categoryId, categoryId)).limit(limit).offset(offset);
+}
+
+export async function getProductById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function searchProducts(query: string, limit: number = 20, offset: number = 0) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(products).where(
+    query ? undefined : undefined
+  ).limit(limit).offset(offset);
+}
+
+// Categories queries
+export async function getCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(categories);
+}
+
+// Sellers queries
+export async function getSellerById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(sellers).where(eq(sellers.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Comments queries
+export async function getCommentsByProduct(productId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(comments).where(eq(comments.productId, productId));
+}
+
+// Favorites queries
+export async function getUserFavorites(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(favorites).where(eq(favorites.userId, userId));
+}
