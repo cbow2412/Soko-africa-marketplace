@@ -96,6 +96,22 @@ export const favorites = mysqlTable("favorites", {
 export type Favorite = typeof favorites.$inferSelect;
 export type InsertFavorite = typeof favorites.$inferInsert;
 
+// Product embeddings for semantic search (SigLIP)
+export const productEmbeddings = mysqlTable("product_embeddings", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull().unique(),
+  // Store embeddings as JSON arrays (768 dimensions for SigLIP)
+  imageEmbedding: text("imageEmbedding").notNull(), // JSON stringified array
+  textEmbedding: text("textEmbedding").notNull(), // JSON stringified array
+  // Hybrid embedding (weighted average of image + text)
+  hybridEmbedding: text("hybridEmbedding").notNull(), // JSON stringified array
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ProductEmbedding = typeof productEmbeddings.$inferSelect;
+export type InsertProductEmbedding = typeof productEmbeddings.$inferInsert;
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sellers: many(sellers),

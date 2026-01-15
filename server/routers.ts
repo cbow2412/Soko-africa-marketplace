@@ -4,6 +4,8 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites } from "./db";
+import { getProductEmbedding, getAllProductEmbeddings } from "./embeddings-db";
+import { findSimilarProducts } from "./embeddings";
 import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
@@ -67,6 +69,45 @@ export const appRouter = router({
           p.description?.toLowerCase().includes(input.query.toLowerCase())
         );
         return filtered.slice(input.offset, input.offset + input.limit);
+      }),
+
+    getSimilar: publicProcedure
+      .input(z.object({
+        productId: z.number(),
+        limit: z.number().default(5),
+      }))
+      .query(async ({ input }) => {
+        try {
+          const queryEmbedding = await getProductEmbedding(input.productId);
+          if (!queryEmbedding) {
+            return [];
+          }
+
+          const allEmbeddings = await getAllProductEmbeddings();
+
+          const similarProducts = findSimilarProducts(
+            queryEmbedding.hybridEmbedding,
+            allEmbeddings.map(e => ({
+              productId: e.productId,
+              embedding: e.hybridEmbedding,
+            })),
+            input.limit + 1
+          );
+
+          const filtered = similarProducts.filter(p => p.productId !== input.productId);
+
+          const similarProductDetails = await Promise.all(
+            filtered.slice(0, input.limit).map(async p => {
+              const product = await getProductById(p.productId);
+              return product ? { ...product, similarity: p.similarity } : null;
+            })
+          );
+
+          return similarProductDetails.filter(p => p !== null);
+        } catch (error) {
+          console.error("Error finding similar products:", error);
+          return [];
+        }
       }),
   }),
 

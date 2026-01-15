@@ -15,6 +15,13 @@
       "when": 1768442262630,
       "tag": "0001_perfect_medusa",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1768443565457,
+      "tag": "0002_opposite_mandroid",
+      "breakpoints": true
     }
   ]
 }
