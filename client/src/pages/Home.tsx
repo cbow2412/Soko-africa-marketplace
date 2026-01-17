@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Heart, Search, Plus, MessageCircle, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin } from "lucide-react";
+import { Heart, Search, Plus, MessageCircle, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin, Bell } from "lucide-react";
 
 interface Product {
   id: number;
@@ -121,123 +121,109 @@ export default function Home() {
 
   return (
     <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden">
-      {/* Top Navigation Bar */}
-      <div className="bg-black/80 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+      {/* Premium Top Stripe - Spans Left to Right */}
+      <div className="bg-black/90 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between z-50 shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20 transform hover:rotate-6 transition-transform cursor-pointer">
             <span className="text-white font-black text-xl">S</span>
           </div>
-          <div className="hidden sm:block">
-            <h1 className="font-black text-xl tracking-tighter">SOKO AFRICA</h1>
-            <p className="text-[10px] text-amber-500 font-bold tracking-widest uppercase">The MVP Marketplace</p>
+          <div className="flex flex-col">
+            <h1 className="font-black text-xl tracking-tighter leading-none">SOKO AFRICA</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[9px] text-amber-500 font-black tracking-[0.2em] uppercase">Marketplace</span>
+              <span className="w-1 h-1 bg-white/20 rounded-full"></span>
+              <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1">
+                <MapPin size={10} /> Nairobi
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Desktop Search */}
-        <div className="hidden md:flex flex-1 max-w-xl mx-8">
-          <div className="w-full flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 focus-within:bg-white/10 focus-within:border-amber-500/50 transition-all">
-            <Search size={18} className="text-slate-400" />
+        {/* Integrated Search in Header */}
+        <div className="hidden md:flex flex-1 max-w-2xl mx-12">
+          <div className="w-full flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-2.5 focus-within:bg-white/10 focus-within:border-amber-500/50 transition-all group">
+            <Search size={18} className="text-slate-500 group-focus-within:text-amber-500 transition-colors" />
             <input
               type="text"
-              placeholder="Search for unique Kenyan finds..."
+              placeholder="Search 1,184+ authentic Kenyan finds..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="bg-transparent outline-none flex-1 text-sm placeholder-slate-500"
+              className="bg-transparent outline-none flex-1 text-sm placeholder-slate-600 font-medium"
             />
+            <div className="flex items-center gap-1 px-2 py-1 bg-white/5 rounded-lg border border-white/5 text-[10px] font-bold text-slate-500">
+              <Sparkles size={12} className="text-amber-500" /> AI
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button className="p-2.5 hover:bg-white/5 rounded-full transition-colors relative group">
-            <MessageCircle size={22} className="text-slate-300 group-hover:text-white" />
-            <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full border-2 border-black"></span>
+        <div className="flex items-center gap-3">
+          <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs rounded-xl transition-all transform active:scale-95 shadow-lg shadow-amber-500/10">
+            <Plus size={16} /> Sell Item
           </button>
-          <button className="p-2.5 hover:bg-white/5 rounded-full transition-colors group">
-            <User size={22} className="text-slate-300 group-hover:text-white" />
+          <div className="h-8 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
+          <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors relative group">
+            <Bell size={20} className="text-slate-400 group-hover:text-white" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-black"></span>
+          </button>
+          <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors group">
+            <User size={20} className="text-slate-400 group-hover:text-white" />
           </button>
         </div>
       </div>
 
       {/* Main Scrollable Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide">
-        {/* Hero Section / Interesting Top Area */}
-        <div className="px-4 pt-6 pb-4">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-900/40 to-black border border-white/5 p-8 sm:p-12">
-            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-orange-600/10 rounded-full blur-3xl"></div>
-            
-            <div className="relative z-10 max-w-2xl">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-500 text-[10px] font-black tracking-widest uppercase border border-amber-500/30">
-                  Featured Collection
-                </span>
-                <span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                  <MapPin size={12} /> Nairobi, Kenya
-                </span>
-              </div>
-              <h2 className="text-4xl sm:text-5xl font-black tracking-tighter mb-4 leading-tight">
-                Discover the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Authentic</span> Spirit of Africa.
-              </h2>
-              <p className="text-slate-400 text-sm sm:text-base mb-8 leading-relaxed max-w-lg">
-                Explore over 1,000+ hand-picked items from local Kenyan markets. From Gikomba rare finds to Kilimani tech, Soko brings the marketplace to your fingertips.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <button className="px-6 py-3 bg-white text-black font-black rounded-xl hover:bg-amber-500 hover:text-white transition-all transform hover:scale-105 active:scale-95">
-                  Shop Now
+        {/* Category Filter - Sticky below header */}
+        <div className="sticky top-0 bg-black/80 backdrop-blur-md z-40 px-6 py-4 overflow-x-auto scrollbar-hide border-b border-white/5">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-amber-500 mr-2">
+              <TrendingUp size={16} />
+              <span className="text-[10px] font-black uppercase tracking-widest">Trending</span>
+            </div>
+            <div className="flex gap-3 whitespace-nowrap">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all border ${
+                  selectedCategory === null
+                    ? "bg-white border-white text-black shadow-lg shadow-white/10"
+                    : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                All Items
+              </button>
+              {categories?.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all border ${
+                    selectedCategory === cat.id
+                      ? "bg-white border-white text-black shadow-lg shadow-white/10"
+                      : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {cat.name}
                 </button>
-                <button className="px-6 py-3 bg-white/5 border border-white/10 text-white font-black rounded-xl hover:bg-white/10 transition-all flex items-center gap-2">
-                  <TrendingUp size={18} /> Trending
-                </button>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        <div className="md:hidden px-4 py-2">
+        {/* Mobile Search Bar - Only visible on small screens */}
+        <div className="md:hidden px-6 py-4">
           <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3">
-            <Search size={18} className="text-slate-400" />
+            <Search size={18} className="text-slate-500" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="bg-transparent outline-none flex-1 text-sm placeholder-slate-500"
+              className="bg-transparent outline-none flex-1 text-sm placeholder-slate-600"
             />
           </div>
         </div>
 
-        {/* Category Filter - Horizontal Scroll */}
-        <div className="sticky top-0 bg-black/80 backdrop-blur-md z-40 px-4 py-4 overflow-x-auto scrollbar-hide border-b border-white/5">
-          <div className="flex gap-3 whitespace-nowrap">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition-all border ${
-                selectedCategory === null
-                  ? "bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20"
-                  : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
-              }`}
-            >
-              All Items
-            </button>
-            {categories?.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-6 py-2 rounded-xl text-xs font-black tracking-widest uppercase transition-all border ${
-                  selectedCategory === cat.id
-                    ? "bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20"
-                    : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Pinterest Masonry Grid */}
-        <div className="px-4 py-6">
+        <div className="px-4 py-4">
           <div className="columns-2 sm:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4">
             {products.map((product, index) => {
               const cardHeight = getCardHeight(product.id);
