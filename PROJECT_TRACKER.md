@@ -44,8 +44,15 @@ If you are a Manus agent continuing this work, please follow these guidelines:
 - [ ] **Semantic Search**: Implement SigLIP-based image and text search for better product discovery.
 - [ ] **Category Deep-Dives**: Add specialized filters for Kenyan market niches (e.g., Gikomba Rare Finds).
 
-### Phase 3: Permanent Deployment
-- [ ] **Hosting Setup**: Move the project from the sandbox to a permanent host (Vercel/Netlify for frontend, TiDB/PlanetScale for database).
+### Phase 3: Permanent Deployment (Option B Implemented)
+- [x] **Deployment Config**: Created `vercel.json` and `Dockerfile` for one-click deployment.
+- [ ] **Hosting Setup**: Connect your GitHub repo to Vercel or Railway.
+- [ ] **Database Migration**: Set up a permanent MySQL/TiDB instance and update `DATABASE_URL`.
+
+## 🚀 Scalable AI Architecture (New)
+- **WhatsApp Scraper**: Service designed in `server/services/whatsapp-scraper.ts` for catalog ingestion.
+- **Gemini AI Layer**: Integrated `server/services/gemini-ai.ts` for image analysis and metadata extraction.
+- **Vector Search Ready**: Architecture prepared for semantic search using Gemini embeddings.
 
 ---
 
