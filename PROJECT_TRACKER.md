@@ -1,0 +1,41 @@
+# Soko Africa Marketplace - Project Tracker
+
+## 🚀 Current Status: Restored & Active
+The project has been successfully restored to its original Pinterest-style vision. All over-engineered "PhD-level" bloat has been removed, and the core marketplace functionality is now active.
+
+### ✅ Completed Actions
+- **Repository Reset**: Reverted to the 4th commit (`cf90b3d`) to restore the clean Manus foundation.
+- **UI Restoration**: Restored the Pinterest-style masonry grid, dark mode, and mobile-first navigation.
+- **Database Activation**: Implemented a local SQLite fallback for the sandbox environment.
+- **Data Seeding**: Populated the database with **1,184 products** across multiple categories (Shoes, Fashion, Furniture, etc.).
+- **Infinite Scroll**: Verified the smooth loading of products as the user scrolls.
+
+---
+
+## 🛠 Technical Details
+- **Frontend**: React + Tailwind CSS + Wouter (Pinterest-style masonry layout).
+- **Backend**: Express + tRPC.
+- **Database**: Drizzle ORM (MySQL for production, SQLite for sandbox).
+- **Images**: 1,184 high-quality Unsplash images integrated into the product feed.
+
+---
+
+## 📅 Upcoming Phases
+
+### Phase 1: Enhanced User Interaction
+- [ ] **WhatsApp Integration**: Finalize the "Order via WhatsApp" button on product detail pages.
+- [ ] **User Favorites**: Enable persistent saving of items to the user's profile.
+- [ ] **Seller Dashboard**: A simple interface for sellers to manage their 1,000+ items.
+
+### Phase 2: Search & Discovery
+- [ ] **Semantic Search**: Implement SigLIP-based image and text search for better product discovery.
+- [ ] **Category Deep-Dives**: Add specialized filters for Kenyan market niches (e.g., Gikomba Rare Finds).
+
+### Phase 3: Permanent Deployment
+- [ ] **Hosting Setup**: Move the project from the sandbox to a permanent host (Vercel/Netlify for frontend, TiDB/PlanetScale for database).
+- [ ] **Domain Mapping**: Connect a custom domain for Soko Africa.
+
+---
+
+## 📝 Change Log
+- **Jan 17, 2026**: Initial restoration and activation. Deleted 5 over-engineered commits. Seeded 1,184 products. Created Project Tracker.

@@ -1,76 +1,133 @@
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, products, categories, sellers, comments, favorites } from "../drizzle/schema";
+import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
+import { drizzle as drizzleSqlite } from "drizzle-orm/sqlite3";
+import sqlite3 from "sqlite3";
+import * as mysqlSchema from "../drizzle/schema";
+import * as sqliteSchema from "../drizzle/sqlite-schema";
 import { ENV } from './_core/env';
+import path from "path";
 
-let _db: ReturnType<typeof drizzle> | null = null;
+let _db: any = null;
+let isSqlite = false;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
-  if (!_db && process.env.DATABASE_URL) {
+  if (_db) return _db;
+
+  if (process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      _db = drizzleMysql(process.env.DATABASE_URL, { schema: mysqlSchema, mode: "default" });
+      isSqlite = false;
+      console.log("✅ Connected to MySQL database");
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
+      console.warn("[Database] Failed to connect to MySQL, falling back to SQLite:", error);
+      await setupSqlite();
     }
+  } else {
+    console.log("ℹ️ No DATABASE_URL found, using local SQLite database");
+    await setupSqlite();
   }
   return _db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
-  const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
-
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
+async function setupSqlite() {
+  const dbPath = path.join(process.cwd(), "local.db");
+  const db = new sqlite3.Database(dbPath);
+  _db = drizzleSqlite(db, { schema: sqliteSchema });
+  isSqlite = true;
+  
+  return new Promise((resolve, reject) => {
+    db.serialize(() => {
+      db.run(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          openId TEXT NOT NULL UNIQUE,
+          name TEXT,
+          email TEXT,
+          loginMethod TEXT,
+          role TEXT DEFAULT 'user',
+          createdAt INTEGER,
+          updatedAt INTEGER,
+          lastSignedIn INTEGER
+        );
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS categories (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL UNIQUE,
+          description TEXT,
+          createdAt INTEGER
+        );
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS sellers (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId INTEGER NOT NULL,
+          storeName TEXT NOT NULL,
+          description TEXT,
+          whatsappPhone TEXT,
+          rating REAL DEFAULT 0,
+          totalSales INTEGER DEFAULT 0,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS products (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          sellerId INTEGER NOT NULL,
+          categoryId INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          description TEXT,
+          price TEXT NOT NULL,
+          imageUrl TEXT,
+          stock INTEGER DEFAULT 0,
+          source TEXT DEFAULT 'nairobi_market',
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS comments (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          productId INTEGER NOT NULL,
+          userId INTEGER NOT NULL,
+          rating INTEGER,
+          text TEXT,
+          createdAt INTEGER,
+          updatedAt INTEGER
+        );
+      `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS favorites (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          userId INTEGER NOT NULL,
+          productId INTEGER NOT NULL,
+          createdAt INTEGER
+        );
+      `, (err) => {
+        if (err) reject(err);
+        else resolve(true);
+      });
     });
+  });
+}
+
+const getTables = () => isSqlite ? sqliteSchema : mysqlSchema;
+
+export async function upsertUser(user: any): Promise<void> {
+  const db = await getDb();
+  const { users } = getTables();
+  try {
+    if (isSqlite) {
+      const existing = await db.select().from(users).where(eq(users.openId, user.openId)).get();
+      if (existing) {
+        await db.update(users).set(user).where(eq(users.openId, user.openId)).run();
+      } else {
+        await db.insert(users).values(user).run();
+      }
+    } else {
+      await db.insert(users).values(user).onDuplicateKeyUpdate({ set: user });
+    }
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
@@ -79,69 +136,51 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
-
+  const { users } = getTables();
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
   return result.length > 0 ? result[0] : undefined;
 }
 
-// Products queries
 export async function getProducts(limit: number = 20, offset: number = 0) {
   const db = await getDb();
-  if (!db) return [];
+  const { products } = getTables();
   return await db.select().from(products).limit(limit).offset(offset);
 }
 
 export async function getProductsByCategory(categoryId: number, limit: number = 20, offset: number = 0) {
   const db = await getDb();
-  if (!db) return [];
+  const { products } = getTables();
   return await db.select().from(products).where(eq(products.categoryId, categoryId)).limit(limit).offset(offset);
 }
 
 export async function getProductById(id: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  const { products } = getTables();
   const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
-export async function searchProducts(query: string, limit: number = 20, offset: number = 0) {
-  const db = await getDb();
-  if (!db) return [];
-  return await db.select().from(products).where(
-    query ? undefined : undefined
-  ).limit(limit).offset(offset);
-}
-
-// Categories queries
 export async function getCategories() {
   const db = await getDb();
-  if (!db) return [];
+  const { categories } = getTables();
   return await db.select().from(categories);
 }
 
-// Sellers queries
 export async function getSellerById(id: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  const { sellers } = getTables();
   const result = await db.select().from(sellers).where(eq(sellers.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
-// Comments queries
 export async function getCommentsByProduct(productId: number) {
   const db = await getDb();
-  if (!db) return [];
+  const { comments } = getTables();
   return await db.select().from(comments).where(eq(comments.productId, productId));
 }
 
-// Favorites queries
 export async function getUserFavorites(userId: number) {
   const db = await getDb();
-  if (!db) return [];
+  const { favorites } = getTables();
   return await db.select().from(favorites).where(eq(favorites.userId, userId));
 }
