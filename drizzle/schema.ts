@@ -144,3 +144,106 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
   product: one(products, { fields: [favorites.productId], references: [products.id] }),
   user: one(users, { fields: [favorites.userId], references: [users.id] }),
 }));
+
+
+// Quality Control table for product QC decisions
+export const qualityControl = mysqlTable("quality_control", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull().unique(),
+  decision: mysqlEnum("decision", ["approved", "rejected", "flagged"]).notNull(),
+  reason: text("reason"), // Why rejected/flagged
+  geminiAnalysis: text("geminiAnalysis"), // JSON stringified Gemini response
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // 0.00-1.00
+  reviewedBy: int("reviewedBy"), // Admin user ID if manually reviewed
+  reviewedAt: timestamp("reviewedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type QualityControl = typeof qualityControl.$inferSelect;
+export type InsertQualityControl = typeof qualityControl.$inferInsert;
+
+// Orders table for tracking buyer orders
+export const orders = mysqlTable("orders", {
+  id: int("id").autoincrement().primaryKey(),
+  buyerId: int("buyerId"), // Can be null for guest orders
+  productId: int("productId").notNull(),
+  sellerId: int("sellerId").notNull(),
+  quantity: int("quantity").default(1).notNull(),
+  totalPrice: varchar("totalPrice", { length: 20 }).notNull(),
+  buyerPhone: varchar("buyerPhone", { length: 20 }),
+  buyerName: varchar("buyerName", { length: 100 }),
+  status: mysqlEnum("status", ["initiated", "confirmed", "shipped", "delivered", "cancelled"]).default("initiated").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = typeof orders.$inferInsert;
+
+// Seller Notifications for order and sync alerts
+export const sellerNotifications = mysqlTable("seller_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  sellerId: int("sellerId").notNull(),
+  type: mysqlEnum("type", ["order", "sync_complete", "sync_failed", "product_rejected", "product_approved"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message"),
+  data: text("data"), // JSON stringified additional context
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SellerNotification = typeof sellerNotifications.$inferSelect;
+export type InsertSellerNotification = typeof sellerNotifications.$inferInsert;
+
+// Catalog Sync Logs for audit trail
+export const catalogSyncLogs = mysqlTable("catalog_sync_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  sellerId: int("sellerId").notNull(),
+  catalogUrl: text("catalogUrl"),
+  status: mysqlEnum("status", ["started", "completed", "failed"]).notNull(),
+  productsScraped: int("productsScraped").default(0),
+  productsApproved: int("productsApproved").default(0),
+  productsRejected: int("productsRejected").default(0),
+  error: text("error"), // Error message if failed
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type CatalogSyncLog = typeof catalogSyncLogs.$inferSelect;
+export type InsertCatalogSyncLog = typeof catalogSyncLogs.$inferInsert;
+
+// Update sellers table with new fields
+export const sellersUpdated = mysqlTable("sellers_updated", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  storeName: varchar("storeName", { length: 255 }).notNull(),
+  description: text("description"),
+  whatsappPhone: varchar("whatsappPhone", { length: 20 }),
+  catalogUrl: varchar("catalogUrl", { length: 500 }), // WhatsApp catalog link
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+  totalSales: int("totalSales").default(0),
+  status: mysqlEnum("status", ["pending", "approved", "suspended", "rejected"]).default("pending").notNull(),
+  lastSyncedAt: timestamp("lastSyncedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+// Relations for new tables
+export const qualityControlRelations = relations(qualityControl, ({ one }) => ({
+  product: one(products, { fields: [qualityControl.productId], references: [products.id] }),
+}));
+
+export const ordersRelations = relations(orders, ({ one }) => ({
+  product: one(products, { fields: [orders.productId], references: [products.id] }),
+  seller: one(sellers, { fields: [orders.sellerId], references: [sellers.id] }),
+  buyer: one(users, { fields: [orders.buyerId], references: [users.id] }),
+}));
+
+export const sellerNotificationsRelations = relations(sellerNotifications, ({ one }) => ({
+  seller: one(sellers, { fields: [sellerNotifications.sellerId], references: [sellers.id] }),
+}));
+
+export const catalogSyncLogsRelations = relations(catalogSyncLogs, ({ one }) => ({
+  seller: one(sellers, { fields: [catalogSyncLogs.sellerId], references: [sellers.id] }),
+}));
