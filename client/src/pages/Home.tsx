@@ -330,7 +330,10 @@ export default function Home() {
           <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
         </button>
         <button 
-          onClick={() => navigate("/explore")}
+          onClick={() => {
+            setSelectedCategory(categoriesData?.[Math.floor(Math.random() * categoriesData.length)]?.id || null);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
           <Sparkles size={22} />
@@ -345,14 +348,14 @@ export default function Home() {
           </button>
         </div>
         <button 
-          onClick={() => navigate("/inbox")}
+          onClick={() => toast.info("Inbox feature coming soon!")}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
           <MessageCircle size={22} />
           <span className="text-[8px] font-black uppercase tracking-widest">Inbox</span>
         </button>
         <button 
-          onClick={() => navigate("/profile")}
+          onClick={() => toast.info("Profile feature coming soon!")}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
           <User size={22} />

@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites } from "./db";
+import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites, createSeller, createSyncLog, getSyncStatus } from "./db";
 import { getProductEmbedding, getAllProductEmbeddings } from "./embeddings-db";
 import { findSimilarProducts } from "./embeddings";
 import { TRPCError } from "@trpc/server";
@@ -145,6 +145,42 @@ export const appRouter = router({
           });
         }
         return seller;
+      }),
+
+    register: publicProcedure
+      .input(z.object({
+        businessName: z.string(),
+        whatsappNumber: z.string(),
+        catalogUrl: z.string(),
+        category: z.string(),
+        city: z.string(),
+        description: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await createSeller({
+          userId: 1, // Mock user ID
+          storeName: input.businessName,
+          whatsappPhone: input.whatsappNumber,
+          description: input.description,
+          catalogUrl: input.catalogUrl,
+        });
+
+        if (result.success) {
+          // Trigger mock sync log
+          await createSyncLog({
+            sellerId: result.sellerId,
+            catalogUrl: input.catalogUrl,
+            status: 'started',
+          });
+        }
+
+        return result;
+      }),
+
+    getSyncStatus: publicProcedure
+      .input(z.object({ sellerId: z.number() }))
+      .query(async ({ input }) => {
+        return await getSyncStatus(input.sellerId);
       }),
   }),
 
