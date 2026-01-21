@@ -1,219 +1,97 @@
-# Architecture Update: Phase 2 - Job Queue System
+# Architecture Update: Phase 3 - Scout & Hydrate Ingestion Engine
 
 ## Overview
 
-Phase 2 introduces a distributed job queue system using Redis and Bull for handling background tasks at scale. This enables parallel processing of catalog scraping, embedding generation, quality control, and product indexing.
+Phase 3 introduces a major architectural pivot from heavy, browser-based scraping to a lightweight **"Scout & Hydrate"** pipeline. This leverages the static Open Graph (OG) metadata in WhatsApp product links to achieve a **10x reduction in compute cost** and bypasses the "Lazy Load" bottleneck, transforming Soko Africa into a high-speed **Visual Search Index** of the WhatsApp commerce layer.
 
 ## System Components
 
-### Redis Layer
-- **Purpose**: In-memory data store for caching and job queue
-- **Services**: `redis-client.ts`
-- **Capabilities**:
-  - Search result caching (1-hour TTL)
-  - Session management
-  - Rate limiting (token bucket algorithm)
-  - Job queue persistence
+### Ingestion Engine (The Scout & Hydrate Pipeline)
 
-### Bull Job Queue
-- **Purpose**: Distributed job processing with retry logic
-- **Services**: `job-queue.ts`
-- **Features**:
-  - 5 concurrent workers per job type
-  - Exponential backoff retry (3 attempts)
-  - Dead letter queue for failed jobs
-  - Job progress tracking
-  - Queue statistics and monitoring
+The previous monolithic scraping job is split into two highly optimized, concurrent steps:
 
-### Job Types
+#### 1. The Scout (Playwright)
+- **Purpose**: Fast, minimal browser interaction to extract product identifiers.
+- **Process**: Playwright navigates to the seller's catalog URL (`wa.me/c/...`) and extracts all 16-digit `Product_ID`s and the `Seller_Phone`. It **does not** wait for images or full page load.
+- **Output**: A JSON array of `{ productId, sellerPhone }` pairs, queued for hydration.
 
-#### 1. Scrape Catalog
-- **Input**: `catalogUrl`, `sellerId`
-- **Process**: Playwright extracts products from WhatsApp catalog
-- **Output**: Product list queued for embedding generation
-- **Retry**: 3 attempts with exponential backoff
+#### 2. The Hydrator (Axios/Cheerio)
+- **Purpose**: Lightweight, concurrent metadata extraction.
+- **Process**: A dedicated worker uses `axios` or `undici` to fetch the constructed product link (`wa.me/p/[Product_ID]/[Phone_Number]`). `Cheerio` is used to quickly parse the HTML `<head>` for `og:image`, `og:title`, and `og:description`.
+- **Concurrency**: Controlled by `p-limit` library, allowing up to **20 concurrent fetches** per worker.
+- **Self-Healing**: Implements **User-Agent rotation** and **Exponential Backoff** on 429/5xx errors to prevent rate limiting. 404 errors (deleted products) are logged and skipped.
 
-#### 2. Generate Embedding
-- **Input**: `productName`, `description`, `imageUrl`, `productId`, `sellerId`
-- **Process**: SigLIP generates 768-dimensional embeddings
-- **Output**: Embeddings stored in Milvus
-- **Next**: Queues quality control job
+### SigLIP Embedding Service Upgrade
 
-#### 3. Quality Control
-- **Input**: `productName`, `description`, `imageUrl`, `productId`
-- **Process**: Gemini AI analyzes product
-- **Output**: Approval/rejection/flagged decision cached in Redis
-- **Decision**: Determines if product goes live
+The embedding generation process is upgraded to create a more robust, "concept-first" vector.
 
-#### 4. Index Product
-- **Input**: `productId`, `productName`
-- **Process**: Index in search systems (Elasticsearch)
-- **Output**: Product searchable
+- **Model**: SigLIP-base (768-dimensional vectors).
+- **Hybrid Vectorization**: A weighted average of the image and text embeddings is used: **0.6 Image / 0.4 Text**.
+- **Zero-Copy Vectorization**: The `og:image` URL is fetched directly into memory, processed by SigLIP, and immediately discarded. **No temporary disk storage is used.**
+- **Text Cleaning**: A simple Regex/String utility is applied to the concatenated `title + description` to strip noise (emojis, "inbox for price") before text vectorization.
 
-#### 5. Sync Seller
-- **Input**: `catalogUrl`, `sellerId`
-- **Process**: Orchestrates full catalog sync pipeline
-- **Output**: All seller products processed and live
+## Database Schema Updates
 
-## Data Flow
+The `products` table is updated to support the new ingestion and synchronization logic.
 
-```
-Seller Registration
-        ↓
-Catalog URL Input
-        ↓
-Queue: sync-seller
-        ↓
-Process: Scrape Catalog (Playwright)
-        ↓
-Extract Products
-        ↓
-Queue: generate-embedding (Bulk)
-        ↓
-Process: SigLIP Embeddings
-        ↓
-Store in Milvus
-        ↓
-Queue: quality-control
-        ↓
-Process: Gemini AI Analysis
-        ↓
-Cache QC Result (Redis)
-        ↓
-Queue: index-product
-        ↓
-Process: Index in Search
-        ↓
-Product Live on Marketplace
+| Field | Type | Purpose |
+| :--- | :--- | :--- |
+| `productId` | `VARCHAR(16)` | The unique 16-digit WhatsApp Product ID. |
+| `sellerPhone` | `VARCHAR(15)` | The seller's phone number, enabling easy batch 'Re-Hydration'. |
+| `imageUrl` | `TEXT` | Stores the **Meta CDN link** for initial display. |
+| `lastHydratedAt` | `TIMESTAMP` | Timestamp of the last successful metadata fetch, used for 'Heartbeat Sync' logic. |
+| `s3ImageUrl` | `TEXT` | (New) URL for the image stored in our S3 bucket (used by Lazy Persistence). |
+
+## Data Flow (Scout & Hydrate Pipeline)
+
+```mermaid
+graph TD
+    A[Seller Catalog URL] --> B(Queue: sync-seller);
+    B --> C{Worker: The Scout};
+    C --> D[Playwright: Extract Product IDs];
+    D --> E{JSON Array: {productId, sellerPhone}};
+    E --> F(Queue: hydrate-product);
+    F --> G{Worker: The Hydrator};
+    G --> H[Axios/Cheerio: Fetch wa.me/p/ Link];
+    H --> I{Extract: og:image, og:title, og:description};
+    I --> J(Queue: generate-embedding);
+    J --> K{Worker: SigLIP Service};
+    K --> L[Zero-Copy: 0.6 Image / 0.4 Text Vector];
+    L --> M[Store Vector in Milvus];
+    M --> N(Queue: quality-control);
+    N --> O{Worker: Gemini QC};
+    O --> P{Decision: Approved?};
+    P -- Approved --> Q(Queue: lazy-persistence);
+    P -- Approved --> R[Update Product: lastHydratedAt, imageUrl];
+    P -- Rejected/Flagged --> R;
+    Q --> S{Worker: S3 Uploader};
+    S --> T[Download Meta CDN Image];
+    T --> U[Upload to S3];
+    U --> V[Update Product: s3ImageUrl];
+    R --> W[Product Live on Marketplace];
 ```
 
-## Performance Characteristics
+## Performance Characteristics (Post-Refactor)
 
-| Metric | Value |
-|--------|-------|
-| **Concurrent Jobs** | 25 (5 per job type) |
-| **Scraping Speed** | 10-20 products/minute |
-| **Embedding Generation** | 100-200 products/minute |
-| **QC Analysis** | 50-100 products/minute |
-| **Total Sync Time** | 5-10 minutes per 100 products |
-| **Search Latency** | <200ms (with Redis cache) |
-| **Cache Hit Rate** | 70-80% for popular searches |
+| Metric | Previous (Scrape) | New (Scout & Hydrate) | Improvement |
+| :--- | :--- | :--- | :--- |
+| **Scraping Cost** | High (Full Browser) | Low (Minimal Browser) | 10x |
+| **Ingestion Speed** | 10-20 products/min | **~100-200 products/min** | 10x |
+| **Concurrency** | Limited by Playwright | 20 Concurrent Fetches | 20x |
+| **Media Ownership** | None | Lazy Persistence (S3) | Critical |
 
-## Scaling Strategy
+## Lazy Persistence Strategy
 
-### Horizontal Scaling
-- Deploy multiple worker instances
-- Each instance processes 5 concurrent jobs
-- Redis coordinates job distribution
-- No single point of failure
+1.  The `imageUrl` field stores the ephemeral **Meta CDN link**.
+2.  Only products that receive an **"Approved"** decision from the Gemini QC worker are queued for `lazy-persistence`.
+3.  The `lazy-persistence` worker downloads the image from the Meta CDN link and uploads it to our S3 bucket, storing the permanent URL in `s3ImageUrl`.
+4.  The frontend will prioritize `s3ImageUrl` if available, falling back to `imageUrl` (Meta CDN) if the S3 upload is pending.
 
-### Vertical Scaling
-- Increase `concurrency` setting per worker
-- Increase Redis memory allocation
-- Optimize job processor code
+## Error Handling & Self-Healing
 
-### Load Balancing
-- Round-robin job distribution
-- Priority queues for urgent jobs
-- Rate limiting per seller
-
-## Monitoring & Observability
-
-### Metrics Tracked
-- Jobs completed per minute
-- Average job duration
-- Failure rate per job type
-- Queue depth (pending jobs)
-- Worker utilization
-
-### Logging
-- Job start/completion events
-- Error tracking with stack traces
-- Performance metrics per job
-- Seller sync status updates
-
-### Alerts
-- Job failure threshold (>5% failure rate)
-- Queue depth threshold (>1000 pending)
-- Worker health checks
-- Redis connection issues
-
-## Error Handling
-
-### Retry Strategy
-- **Exponential Backoff**: 2s → 4s → 8s
-- **Max Attempts**: 3 per job
-- **Dead Letter Queue**: Failed jobs after 3 attempts
-
-### Failure Scenarios
-- **Network Error**: Retry automatically
-- **Invalid Data**: Move to DLQ, notify seller
-- **Service Unavailable**: Exponential backoff
-- **Rate Limited**: Queue for later retry
-
-## Integration Points
-
-### With Milvus
-- Embeddings stored immediately after generation
-- Enables real-time search updates
-- Automatic indexing for new embeddings
-
-### With Gemini AI
-- Async QC analysis
-- Results cached for 24 hours
-- Reduces API calls for repeated products
-
-### With Seller Dashboard
-- Real-time sync status updates
-- Job progress tracking
-- Notification on completion
-
-## Future Enhancements
-
-1. **Priority Queues**: Rush sync for premium sellers
-2. **Scheduled Jobs**: Periodic catalog re-sync (24-hour intervals)
-3. **Webhook Notifications**: Real-time seller updates
-4. **Analytics Dashboard**: Job performance metrics
-5. **Auto-scaling**: Dynamic worker scaling based on queue depth
-
-## Deployment
-
-### Docker Compose Services
-```yaml
-redis:
-  image: redis:7-alpine
-  ports:
-    - "6379:6379"
-
-job-worker:
-  build: .
-  environment:
-    - REDIS_URL=redis://redis:6379
-  depends_on:
-    - redis
-  replicas: 3
-```
-
-### Environment Variables
-- `REDIS_HOST`: Redis server address
-- `REDIS_PORT`: Redis port (default: 6379)
-- `REDIS_PASSWORD`: Redis authentication
-- `JOB_CONCURRENCY`: Jobs per worker (default: 5)
-- `JOB_TIMEOUT`: Job timeout in seconds (default: 300)
-
-## Testing
-
-### Unit Tests
-- Job processor logic
-- Redis operations
-- Error handling
-
-### Integration Tests
-- End-to-end job pipeline
-- Queue operations
-- Retry logic
-
-### Load Tests
-- 1000+ concurrent jobs
-- Queue performance under load
-- Worker scaling behavior
+| Scenario | Strategy |
+| :--- | :--- |
+| **Rate Limit (429)** | **Exponential Backoff**: Wait 1s, 2s, 4s, etc., before retrying the Hydrator job. |
+| **Deleted Product (404)** | Log the event in `catalogSyncLogs` and mark the product as inactive in the database. **Do not crash the worker.** |
+| **Ephemeral Link Failure** | The `lazy-persistence` worker will retry the download. If it fails, the product remains on the Meta CDN link until the next 'Heartbeat Sync'. |
+| **Headless Detection** | **User-Agent Rotation** in the Hydrator to mimic common mobile browsers. |

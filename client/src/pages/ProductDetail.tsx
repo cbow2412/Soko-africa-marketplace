@@ -281,31 +281,39 @@ export default function ProductDetail() {
               <span>Visual Similarity Search</span>
               <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-amber-500/10 text-amber-500 rounded-lg border border-amber-500/20">SigLIP AI</span>
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-              {similarProducts.map((similar: any) => (
-                <Card
-                  key={similar.id}
-                  onClick={() => navigate(`/product/${similar.id}`)}
-                  className="bg-slate-800 border-slate-700 overflow-hidden hover:border-amber-500 cursor-pointer transition-all group"
-                >
-                  <div className="relative aspect-square overflow-hidden bg-slate-900">
-                    <img
-                      src={similar.imageUrl || "https://via.placeholder.com/300?text=No+Image"}
-                      alt={similar.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                    />
-                    <div className="absolute top-2 right-2 bg-amber-600 text-white px-2 py-1 rounded text-xs font-bold">
-                      {(similar.similarity * 100).toFixed(0)}%
+            <div className="columns-2 sm:columns-3 lg:columns-5 gap-4 space-y-4">
+              {similarProducts.map((similar: any, index: number) => {
+                // Generate a pseudo-random height for masonry effect
+                const heights = [200, 250, 300, 220, 280];
+                const cardHeight = heights[index % heights.length];
+                
+                return (
+                  <div
+                    key={similar.id}
+                    onClick={() => navigate(`/product/${similar.id}`)}
+                    className="break-inside-avoid bg-white/5 rounded-3xl overflow-hidden cursor-pointer group relative hover:ring-2 hover:ring-amber-500/50 transition-all duration-300"
+                  >
+                    <div style={{ height: `${cardHeight}px` }} className="relative overflow-hidden">
+                      <img
+                        src={similar.imageUrl || "https://via.placeholder.com/300?text=No+Image"}
+                        alt={similar.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                        <div className="text-white text-xs font-black leading-tight line-clamp-2 mb-1">
+                          {similar.name}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="text-amber-400 font-black text-sm">{similar.price}</div>
+                          <div className="bg-amber-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
+                            {(similar.similarity * 100).toFixed(0)}% Match
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <h4 className="font-semibold text-white text-sm line-clamp-2 mb-2">
-                      {similar.name}
-                    </h4>
-                    <p className="text-amber-400 font-bold text-sm">{similar.price}</p>
-                  </div>
-                </Card>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
