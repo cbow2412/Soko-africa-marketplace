@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites, createSeller, createSyncLog, getSyncStatus } from "./db";
 import { getProductEmbedding, getAllProductEmbeddings } from "./embeddings-db";
 import { findSimilarProducts } from "./embeddings";
+import { RealSigLIPEmbeddings } from "./services/siglip-real";
 import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
@@ -142,6 +143,40 @@ export const appRouter = router({
         }
 
         return recommended;
+      }),
+
+    searchByVisualSimilarity: publicProcedure
+      .input(z.object({
+        productId: z.number(),
+        limit: z.number().default(10),
+      }))
+      .query(async ({ input }) => {
+        const allProducts = await getProducts(1000, 0);
+        const targetProduct = allProducts.find(p => p.id === input.productId);
+        
+        if (!targetProduct) return [];
+
+        const targetEmbedding = await RealSigLIPEmbeddings.generateEmbeddings(
+          targetProduct.name,
+          targetProduct.description || "",
+          targetProduct.imageUrl || ""
+        );
+
+        const scoredProducts = await Promise.all(allProducts
+          .filter(p => p.id !== input.productId)
+          .map(async (p) => {
+            const pEmbedding = await RealSigLIPEmbeddings.generateEmbeddings(
+              p.name,
+              p.description || "",
+              p.imageUrl || ""
+            );
+            const similarity = RealSigLIPEmbeddings.cosineSimilarity(targetEmbedding, pEmbedding);
+            return { ...p, similarity };
+          }));
+
+        return scoredProducts
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, input.limit);
       }),
   }),
 

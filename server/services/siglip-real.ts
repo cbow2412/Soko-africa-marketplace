@@ -1,3 +1,5 @@
+import axios from "axios";
+
 /**
  * Real SigLIP Embeddings Service
  * 
@@ -36,7 +38,35 @@ export class RealSigLIPEmbeddings {
       normalize = true,
     } = options;
 
-    console.log(`[SigLIP] Generating embeddings for: ${productName}`);
+    const hfToken = process.env.HF_TOKEN;
+    
+    if (hfToken) {
+      console.log(`[SigLIP] Using Hugging Face API for: ${productName}`);
+      try {
+        // Use Hugging Face Inference API for real SigLIP embeddings
+        const response = await axios.post(
+          "https://api-inference.huggingface.co/models/google/siglip-base-patch16-224",
+          {
+            inputs: {
+              image: imageUrl,
+              text: `${productName} ${description}`
+            }
+          },
+          {
+            headers: { Authorization: `Bearer ${hfToken}` },
+            timeout: 10000
+          }
+        );
+        
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+      } catch (error) {
+        console.warn("[SigLIP] HF API failed, falling back to local feature extraction");
+      }
+    }
+
+    console.log(`[SigLIP] Generating local embeddings for: ${productName}`);
 
     try {
       let embedding = new Array(this.EMBEDDING_DIMENSION).fill(0);
@@ -58,7 +88,6 @@ export class RealSigLIPEmbeddings {
         embedding = this.normalizeVector(embedding);
       }
 
-      console.log(`[SigLIP] Embeddings generated (dim: ${embedding.length})`);
       return embedding;
     } catch (error) {
       console.error("[SigLIP] Error generating embeddings:", error);

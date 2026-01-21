@@ -29,9 +29,9 @@ export default function ProductDetail() {
     { enabled: !!product }
   );
 
-  // Fetch similar products
-  const { data: similarProducts } = trpc.products.getSimilar.useQuery(
-    { productId, limit: 5 },
+  // Fetch similar products using AI Visual Similarity
+  const { data: similarProducts } = trpc.products.searchByVisualSimilarity.useQuery(
+    { productId, limit: 6 },
     { enabled: !!product }
   );
 
@@ -263,8 +263,9 @@ export default function ProductDetail() {
         {similarProducts && similarProducts.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <span>Similar Products</span>
-              <span className="text-sm text-amber-500 font-normal">Powered by SigLIP</span>
+              <Sparkles className="w-6 h-6 text-amber-500" />
+              <span>Visual Similarity Search</span>
+              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-amber-500/10 text-amber-500 rounded-lg border border-amber-500/20">SigLIP AI</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {similarProducts.map((similar: any) => (
