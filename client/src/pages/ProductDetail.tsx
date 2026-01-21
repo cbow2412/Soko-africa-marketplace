@@ -1,15 +1,17 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+// import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Heart, ArrowLeft, Share2, MessageCircle, Star, ChevronRight } from "lucide-react";
+import { Heart, ArrowLeft, Share2, MessageCircle, Star, ChevronRight, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ProductDetail() {
   const [location, navigate] = useLocation();
   const productId = parseInt(location.split("/").pop() || "0");
-  const { user, isAuthenticated } = useAuth();
+  // const { user, isAuthenticated } = useAuth();
+  const user = null;
+  const isAuthenticated = false;
   const [isSaved, setIsSaved] = useState(false);
 
   // Fetch product details
@@ -30,10 +32,18 @@ export default function ProductDetail() {
   );
 
   // Fetch similar products using AI Visual Similarity
-  const { data: similarProducts } = trpc.products.searchByVisualSimilarity.useQuery(
+  const { data: similarProducts, refetch: refetchSimilar } = trpc.products.searchByVisualSimilarity.useQuery(
     { productId, limit: 6 },
     { enabled: !!product }
   );
+
+  // Scroll to top when product changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (product) {
+      refetchSimilar();
+    }
+  }, [productId, product, refetchSimilar]);
 
   if (isLoading) {
     return (
@@ -176,8 +186,8 @@ export default function ProductDetail() {
               {/* Metadata Badges */}
               <div className="flex flex-wrap gap-3 mb-8">
                 <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">In Stock</span>
+                  <ShieldCheck className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Authentic</span>
                 </div>
                 <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
                   <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
@@ -186,6 +196,10 @@ export default function ProductDetail() {
                 <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
                   <Sparkles className="w-3 h-3 text-amber-500" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">AI Verified</span>
+                </div>
+                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
+                  <Zap className="w-3 h-3 text-blue-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fast Delivery</span>
                 </div>
               </div>
             </div>

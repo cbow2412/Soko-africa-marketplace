@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites, createSeller, createSyncLog, getSyncStatus } from "./db";
+import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites, createSeller, createSyncLog, getSyncStatus, getVisualSimilarity } from "./db";
 import { getProductEmbedding, getAllProductEmbeddings } from "./embeddings-db";
 import { findSimilarProducts } from "./embeddings";
 import { RealSigLIPEmbeddings } from "./services/siglip-real";
@@ -151,32 +151,7 @@ export const appRouter = router({
         limit: z.number().default(10),
       }))
       .query(async ({ input }) => {
-        const allProducts = await getProducts(1000, 0);
-        const targetProduct = allProducts.find(p => p.id === input.productId);
-        
-        if (!targetProduct) return [];
-
-        const targetEmbedding = await RealSigLIPEmbeddings.generateEmbeddings(
-          targetProduct.name,
-          targetProduct.description || "",
-          targetProduct.imageUrl || ""
-        );
-
-        const scoredProducts = await Promise.all(allProducts
-          .filter(p => p.id !== input.productId)
-          .map(async (p) => {
-            const pEmbedding = await RealSigLIPEmbeddings.generateEmbeddings(
-              p.name,
-              p.description || "",
-              p.imageUrl || ""
-            );
-            const similarity = RealSigLIPEmbeddings.cosineSimilarity(targetEmbedding, pEmbedding);
-            return { ...p, similarity };
-          }));
-
-        return scoredProducts
-          .sort((a, b) => b.similarity - a.similarity)
-          .slice(0, input.limit);
+        return await getVisualSimilarity(input.productId, input.limit);
       }),
   }),
 
