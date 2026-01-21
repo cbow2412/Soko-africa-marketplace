@@ -9,6 +9,7 @@ import ProductDetail from "./pages/ProductDetail";
 import SellerOnboarding from "./pages/SellerOnboarding";
 import Watchlist from "./pages/Watchlist";
 import Orders from "./pages/Orders";
+import Profile from "./pages/Profile";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/seller/onboarding"} component={SellerOnboarding} />
       <Route path={"/watchlist"} component={Watchlist} />
       <Route path={"/orders"} component={Orders} />
+      <Route path={"/profile"} component={Profile} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

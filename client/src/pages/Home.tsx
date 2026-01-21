@@ -169,7 +169,10 @@ export default function Home() {
             <Bell size={20} className="text-slate-400 group-hover:text-white" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-black"></span>
           </button>
-          <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors group">
+          <button 
+            onClick={() => navigate("/profile")}
+            className="p-2.5 hover:bg-white/5 rounded-xl transition-colors group"
+          >
             <User size={20} className="text-slate-400 group-hover:text-white" />
           </button>
         </div>
@@ -248,6 +251,7 @@ export default function Home() {
                     return (
                       <div
                         key={`${product.id}-${index}`}
+                        onClick={() => navigate(`/product/${product.id}`)}
                         className="bg-white/5 rounded-3xl overflow-hidden cursor-pointer group relative hover:ring-2 hover:ring-amber-500/50 transition-all duration-300"
                         style={{ height: `${cardHeight}px` }}
                       >
@@ -352,7 +356,7 @@ export default function Home() {
           <span className="text-[8px] font-black uppercase tracking-widest">Orders</span>
         </button>
         <button 
-          onClick={() => toast.info("Profile feature coming soon!")}
+          onClick={() => navigate("/profile")}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
           <User size={22} />
