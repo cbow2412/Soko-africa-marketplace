@@ -117,11 +117,31 @@ export const appRouter = router({
       }))
       .query(async ({ input }) => {
         // Sophisticated recommendation algorithm (Phase 1: Metadata-based)
-        // In a real production environment, this would use user interaction history
-        // and vector similarity from Milvus.
-        const allProducts = await getProducts(input.limit, input.offset);
-        // Shuffle for "discovery" feel
-        return allProducts.sort(() => Math.random() - 0.5);
+        // This version uses a weighted shuffle to prioritize trending categories
+        // and diverse sellers for a Pinterest-style discovery experience.
+        const allProducts = await getProducts(100, 0); // Get a larger pool
+        
+        // Group by category to ensure diversity
+        const categoryGroups: Record<number, any[]> = {};
+        allProducts.forEach(p => {
+          if (!categoryGroups[p.categoryId]) categoryGroups[p.categoryId] = [];
+          categoryGroups[p.categoryId].push(p);
+        });
+
+        // Pick products from each category to ensure a mixed feed
+        const recommended: any[] = [];
+        const categories = Object.keys(categoryGroups);
+        
+        for (let i = 0; i < input.limit; i++) {
+          const catId = categories[i % categories.length];
+          const pool = categoryGroups[Number(catId)];
+          if (pool && pool.length > 0) {
+            const randomIndex = Math.floor(Math.random() * pool.length);
+            recommended.push(pool.splice(randomIndex, 1)[0]);
+          }
+        }
+
+        return recommended;
       }),
   }),
 

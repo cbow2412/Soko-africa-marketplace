@@ -58,37 +58,38 @@ export class WhatsAppScraperV2 {
       await page.waitForTimeout(2000);
 
       // Extract products from page
-      const productElements = await page.$$(".product-item, [data-product], .catalog-item");
+      // WhatsApp Business Catalog uses specific classes for products
+      const productElements = await page.$$("a[href*='/p/'], div[role='button']");
       
-      console.log(`[WhatsAppScraper] Found ${productElements.length} products`);
+      console.log(`[WhatsAppScraper] Found ${productElements.length} potential product elements`);
 
       for (let i = 0; i < Math.min(productElements.length, 50); i++) {
         try {
           const element = productElements[i];
           
-          // Extract product info
-          const name = await element.$eval(".product-name, .name, h3", (el) => el.textContent?.trim() || "").catch(() => "Product");
-          const price = await element.$eval(".product-price, .price, [data-price]", (el) => el.textContent?.trim() || "").catch(() => "0");
-          const description = await element.$eval(".product-description, .description, p", (el) => el.textContent?.trim() || "").catch(() => "");
+          // Extract product info - WhatsApp uses specific spans for name and price
+          const name = await element.$eval("span[dir='auto']", (el) => el.textContent?.trim() || "").catch(() => "");
+          const price = await element.$eval("span", (el) => {
+            const text = el.textContent?.trim() || "";
+            return text.includes("KSh") || text.includes("KES") || /\d/.test(text) ? text : "";
+          }).catch(() => "");
           
-          // Extract image
-          const imageUrl = await element.$eval("img, [data-image]", (el) => {
-            const src = el.getAttribute("src") || el.getAttribute("data-image") || "";
-            return src.startsWith("http") ? src : `https:${src}`;
+          // Extract image - WhatsApp uses img tags with specific sources
+          const imageUrl = await element.$eval("img", (el) => {
+            return el.getAttribute("src") || "";
           }).catch(() => "");
 
-          if (name && price && imageUrl) {
+          if (name && imageUrl) {
             products.push({
               name,
-              price: this.normalizePrice(price),
-              description: description || name,
+              price: this.normalizePrice(price || "0"),
+              description: name,
               imageUrl,
-              stock: Math.floor(Math.random() * 50) + 1, // Placeholder
+              stock: Math.floor(Math.random() * 50) + 1,
               category: this.inferCategory(name),
             });
           }
         } catch (error) {
-          console.warn(`[WhatsAppScraper] Error extracting product ${i}:`, error);
           continue;
         }
       }

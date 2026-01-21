@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { Heart, Search, Plus, MessageCircle, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin, Bell } from "lucide-react";
+import { Heart, Search, Plus, MessageCircle, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin, Bell, Package } from "lucide-react";
 
 interface Product {
   id: number;
@@ -330,14 +330,11 @@ export default function Home() {
           <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
         </button>
         <button 
-          onClick={() => {
-            setSelectedCategory(categoriesData?.[Math.floor(Math.random() * categoriesData.length)]?.id || null);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
+          onClick={() => navigate("/watchlist")}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
-          <Sparkles size={22} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Explore</span>
+          <Heart size={22} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Watchlist</span>
         </button>
         <div className="relative -mt-12">
           <button 
@@ -348,11 +345,11 @@ export default function Home() {
           </button>
         </div>
         <button 
-          onClick={() => toast.info("Inbox feature coming soon!")}
+          onClick={() => navigate("/orders")}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
-          <MessageCircle size={22} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Inbox</span>
+          <Package size={22} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Orders</span>
         </button>
         <button 
           onClick={() => toast.info("Profile feature coming soon!")}
