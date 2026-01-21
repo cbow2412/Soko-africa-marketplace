@@ -43,8 +43,8 @@ export default function Home() {
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Fetch products
-  const { data: productsData, isLoading: isLoadingProducts } = trpc.products.getAll.useQuery(
+  // Fetch products (using the new recommendation endpoint for the "All Items" view)
+  const { data: productsData, isLoading: isLoadingProducts } = trpc.products.getRecommended.useQuery(
     { limit: 40, offset },
     { enabled: !selectedCategory && !searchQuery }
   );
@@ -318,24 +318,43 @@ export default function Home() {
 
       {/* Bottom Navigation - Mobile */}
       <div className="bg-black/90 backdrop-blur-md border-t border-white/10 px-6 py-4 flex justify-around items-center sm:hidden z-50">
-        <button className="flex flex-col items-center gap-1 text-amber-500 transition-all">
+        <button 
+          onClick={() => {
+            setSelectedCategory(null);
+            setSearchQuery("");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-1 transition-all ${!selectedCategory && !searchQuery ? 'text-amber-500' : 'text-slate-500 hover:text-white'}`}
+        >
           <HomeIcon size={22} />
           <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all">
+        <button 
+          onClick={() => navigate("/explore")}
+          className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
+        >
           <Sparkles size={22} />
           <span className="text-[8px] font-black uppercase tracking-widest">Explore</span>
         </button>
         <div className="relative -mt-12">
-          <button className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl shadow-amber-500/40 border-4 border-black transform active:scale-90 transition-transform">
+          <button 
+            onClick={() => navigate("/seller/onboarding")}
+            className="w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-xl shadow-amber-500/40 border-4 border-black transform active:scale-90 transition-transform"
+          >
             <Plus size={28} className="text-white" />
           </button>
         </div>
-        <button className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all">
+        <button 
+          onClick={() => navigate("/inbox")}
+          className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
+        >
           <MessageCircle size={22} />
           <span className="text-[8px] font-black uppercase tracking-widest">Inbox</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all">
+        <button 
+          onClick={() => navigate("/profile")}
+          className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
+        >
           <User size={22} />
           <span className="text-[8px] font-black uppercase tracking-widest">Profile</span>
         </button>

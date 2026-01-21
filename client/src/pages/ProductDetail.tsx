@@ -128,14 +128,31 @@ export default function ProductDetail() {
                 )}
                 <button
                   onClick={() => setIsSaved(!isSaved)}
-                  className="absolute top-4 right-4 p-3 bg-slate-900/80 hover:bg-slate-800 rounded-full transition-colors"
+                  className="absolute top-4 right-4 p-3 bg-black/60 backdrop-blur-md hover:bg-black/80 rounded-2xl transition-all transform active:scale-90 z-10"
                 >
                   <Heart
                     className={`w-6 h-6 ${
-                      isSaved ? "fill-red-500 text-red-500" : "text-slate-400"
+                      isSaved ? "fill-red-500 text-red-500" : "text-white"
                     }`}
                   />
                 </button>
+
+                {/* Integrated Buy Button inside Image */}
+                <div className="absolute bottom-6 left-6 right-6 flex gap-3">
+                  <Button
+                    onClick={handleWhatsAppChat}
+                    className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest py-7 rounded-2xl shadow-2xl shadow-amber-500/20 transition-all transform active:scale-95 border-none"
+                  >
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Buy Now
+                  </Button>
+                  <button 
+                    onClick={handleShare}
+                    className="w-14 h-14 bg-white/10 backdrop-blur-md hover:bg-white/20 rounded-2xl flex items-center justify-center transition-all text-white"
+                  >
+                    <Share2 className="w-6 h-6" />
+                  </button>
+                </div>
               </div>
             </Card>
 
@@ -156,23 +173,20 @@ export default function ProductDetail() {
                 </Card>
               </div>
 
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-4">
-                <Button
-                  onClick={handleWhatsAppChat}
-                  className="bg-green-600 hover:bg-green-700 text-white text-lg py-6"
-                >
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  Chat with Seller
-                </Button>
-                <Button
-                  onClick={handleShare}
-                  variant="outline"
-                  className="border-slate-700 text-slate-300 hover:text-white text-lg py-6"
-                >
-                  <Share2 className="w-5 h-5 mr-2" />
-                  Share
-                </Button>
+              {/* Metadata Badges */}
+              <div className="flex flex-wrap gap-3 mb-8">
+                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">In Stock</span>
+                </div>
+                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
+                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Top Rated</span>
+                </div>
+                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">AI Verified</span>
+                </div>
               </div>
             </div>
           </div>

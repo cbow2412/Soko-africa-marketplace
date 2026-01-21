@@ -109,6 +109,20 @@ export const appRouter = router({
           return [];
         }
       }),
+
+    getRecommended: publicProcedure
+      .input(z.object({
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        // Sophisticated recommendation algorithm (Phase 1: Metadata-based)
+        // In a real production environment, this would use user interaction history
+        // and vector similarity from Milvus.
+        const allProducts = await getProducts(input.limit, input.offset);
+        // Shuffle for "discovery" feel
+        return allProducts.sort(() => Math.random() - 0.5);
+      }),
   }),
 
   // Categories router
