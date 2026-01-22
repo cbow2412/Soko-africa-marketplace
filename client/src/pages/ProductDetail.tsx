@@ -70,12 +70,13 @@ export default function ProductDetail() {
   }
 
   const handleWhatsAppChat = () => {
-    if (seller?.whatsappPhone && product) {
+    if (product) {
+      // Use the real seller phone from the product data
+      const sellerPhone = product.sellerPhone || seller?.whatsappPhone || "254797629855";
       const message = encodeURIComponent(
         `Hi! I'm interested in your product: ${product.name}\n\nPrice: KES ${product.price}\n\nCan you provide more details?`
       );
-      const whatsappPhone = seller.whatsappPhone || "";
-      const whatsappUrl = `https://wa.me/${whatsappPhone}?text=${message}`;
+      const whatsappUrl = `https://wa.me/${sellerPhone}?text=${message}`;
       window.open(whatsappUrl, "_blank");
     }
   };

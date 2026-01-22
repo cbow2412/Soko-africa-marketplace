@@ -43,6 +43,24 @@ export default function Home() {
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    const savedFavorites = localStorage.getItem('soko_watchlist');
+    if (savedFavorites) {
+      try {
+        const favoriteIds = JSON.parse(savedFavorites);
+        setFavorites(new Set(favoriteIds));
+      } catch (e) {
+        console.error('Failed to load watchlist:', e);
+      }
+    }
+  }, []);
+
+  // Save favorites to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('soko_watchlist', JSON.stringify(Array.from(favorites)));
+  }, [favorites]);
+
   // Fetch products (using the new recommendation endpoint for the "All Items" view)
   const { data: productsData, isLoading: isLoadingProducts } = trpc.products.getRecommended.useQuery(
     { limit: 40, offset },
