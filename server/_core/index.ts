@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import analyticsRouter from "../routes/analytics";
+import recommendationsRouter from "../routes/recommendations";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -38,6 +39,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Analytics API
   app.use("/api/analytics", analyticsRouter);
+  // Recommendations API
+  app.use("/api/recommendations", recommendationsRouter);
   // tRPC API
   app.use(
     "/api/trpc",
