@@ -8,8 +8,10 @@ import { getProductEmbedding, getAllProductEmbeddings } from "./embeddings-db";
 import { findSimilarProducts } from "./embeddings";
 import { RealSigLIPEmbeddings } from "./services/siglip-real";
 import { TRPCError } from "@trpc/server";
+import { adminRouter } from "./routes/admin";
 
 export const appRouter = router({
+  admin: adminRouter,
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

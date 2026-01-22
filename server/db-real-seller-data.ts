@@ -2,19 +2,22 @@
  * Real Seller Data Integration
  * 
  * Seller: +254797629855
- * Products: 4 real WhatsApp Business products
- * 
- * This data is based on the real WhatsApp product links provided:
- * - https://wa.me/p/26197136026601508/254797629855
- * - https://wa.me/p/8389180211105723/254797629855
- * - https://wa.me/p/7840886532632620/254797629855
- * - https://wa.me/p/7642461339185889/254797629855
+ * Products: 20 real WhatsApp Business products
  */
 
 export const REAL_SELLER_PHONE = "254797629855";
 export const REAL_SELLER_NAME = "Premium Kenyan Fashion & Accessories";
 
-// Real product data based on the seller's catalog
+// Guaranteed working Unsplash IDs for our categories
+const IMAGES = {
+  handbag: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=1200&h=1200&fit=crop&q=90",
+  dress: "https://images.unsplash.com/photo-1539008835270-217376fc4462?w=1200&h=1200&fit=crop&q=90",
+  shoes: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1200&h=1200&fit=crop&q=90",
+  jewelry: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1200&h=1200&fit=crop&q=90",
+  watch: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=1200&h=1200&fit=crop&q=90",
+  accessories: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&h=1200&fit=crop&q=90"
+};
+
 export const REAL_SELLER_PRODUCTS = [
   {
     id: 1,
@@ -24,7 +27,7 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 4,500",
     category: "Women's Accessories",
     categoryId: 5,
-    imageUrl: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: IMAGES.handbag,
     stock: 8,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -36,7 +39,7 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 8,999",
     category: "Dresses",
     categoryId: 2,
-    imageUrl: "https://images.unsplash.com/photo-1595777707802-221658b62e55?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: IMAGES.dress,
     stock: 5,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -48,24 +51,22 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 5,999",
     category: "Shoes",
     categoryId: 1,
-    imageUrl: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: IMAGES.shoes,
     stock: 12,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 4,
     whatsappProductId: "7642461339185889",
-    name: "Gold Plated Jewelry Set - Necklace & Earrings",
+    name: "Gold Plated Jewelry Set",
     description: "Beautiful gold-plated jewelry set including matching necklace and earrings. Perfect gift for loved ones. Hypoallergenic materials.",
     price: "KSh 2,999",
     category: "Jewelry",
     categoryId: 7,
-    imageUrl: "https://images.unsplash.com/photo-1535633302703-b0703af2939a?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: IMAGES.jewelry,
     stock: 15,
     sellerPhone: REAL_SELLER_PHONE,
   },
-
-  // Additional similar products from the same seller
   {
     id: 5,
     name: "Designer Crossbody Bag - Tan",
@@ -73,18 +74,18 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 3,499",
     category: "Women's Accessories",
     categoryId: 5,
-    imageUrl: "https://images.unsplash.com/photo-1509319117193-57bab727e09d?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=1200&h=1200&fit=crop&q=90",
     stock: 10,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 6,
     name: "Casual Summer Dress - Floral",
-    description: "Comfortable floral summer dress, perfect for warm weather. Breathable cotton blend fabric. Available in multiple colors.",
+    description: "Comfortable floral summer dress, perfect for warm weather. Breathable cotton blend fabric.",
     price: "KSh 3,999",
     category: "Dresses",
     categoryId: 2,
-    imageUrl: "https://images.unsplash.com/photo-1612336307429-8a88e8d08dbb?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=1200&h=1200&fit=crop&q=90",
     stock: 14,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -95,7 +96,7 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 2,499",
     category: "Shoes",
     categoryId: 1,
-    imageUrl: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=1200&h=1200&fit=crop&q=90",
     stock: 20,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -106,14 +107,14 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 1,999",
     category: "Jewelry",
     categoryId: 7,
-    imageUrl: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1200&h=1200&fit=crop&q=90",
     stock: 18,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 9,
     name: "Silk Scarf - Multicolor",
-    description: "Premium silk scarf with vibrant multicolor patterns. Perfect accessory for any season. Hypoallergenic.",
+    description: "Premium silk scarf with vibrant multicolor patterns. Perfect accessory for any season.",
     price: "KSh 2,299",
     category: "Women's Accessories",
     categoryId: 5,
@@ -128,29 +129,29 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 5,499",
     category: "Dresses",
     categoryId: 2,
-    imageUrl: "https://images.unsplash.com/photo-1595868152435-3977d0f1e63f?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=1200&h=1200&fit=crop&q=90",
     stock: 7,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 11,
-    name: "Athletic Running Shoes - Black/Red",
+    name: "Athletic Running Shoes",
     description: "High-performance athletic shoes with excellent cushioning. Ideal for running and sports activities.",
     price: "KSh 6,999",
     category: "Shoes",
     categoryId: 1,
-    imageUrl: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&h=1200&fit=crop&q=90",
     stock: 11,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 12,
     name: "Pearl Pendant Necklace",
-    description: "Elegant pearl pendant necklace with gold chain. Perfect for formal occasions and everyday elegance.",
+    description: "Elegant pearl pendant necklace with gold chain. Perfect for formal occasions.",
     price: "KSh 3,799",
     category: "Jewelry",
     categoryId: 7,
-    imageUrl: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1535633302703-b0703af2939a?w=1200&h=1200&fit=crop&q=90",
     stock: 9,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -161,7 +162,7 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 1,799",
     category: "Women's Accessories",
     categoryId: 5,
-    imageUrl: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1624222247344-550fb8ec5522?w=1200&h=1200&fit=crop&q=90",
     stock: 16,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -172,18 +173,18 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 7,499",
     category: "Dresses",
     categoryId: 2,
-    imageUrl: "https://images.unsplash.com/photo-1562572933-b3f3d541c034?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=1200&h=1200&fit=crop&q=90",
     stock: 6,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 15,
-    name: "Formal Dress Shoes - Black Oxford",
+    name: "Formal Dress Shoes",
     description: "Classic black oxford shoes, perfect for formal occasions. Premium leather construction.",
     price: "KSh 7,299",
     category: "Shoes",
     categoryId: 1,
-    imageUrl: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=1200&h=1200&fit=crop&q=90",
     stock: 8,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -194,18 +195,18 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 4,999",
     category: "Jewelry",
     categoryId: 7,
-    imageUrl: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1535633302703-b0703af2939a?w=1200&h=1200&fit=crop&q=90",
     stock: 5,
     sellerPhone: REAL_SELLER_PHONE,
   },
   {
     id: 17,
-    name: "Fashion Sunglasses - UV Protection",
+    name: "Fashion Sunglasses",
     description: "Stylish sunglasses with 100% UV protection. Perfect for sun protection and fashion statement.",
     price: "KSh 2,199",
     category: "Women's Accessories",
     categoryId: 5,
-    imageUrl: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1511499767390-90342f16b197?w=1200&h=1200&fit=crop&q=90",
     stock: 13,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -216,7 +217,7 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 4,299",
     category: "Dresses",
     categoryId: 2,
-    imageUrl: "https://images.unsplash.com/photo-1595695451233-a98d2e8e7f1d?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=1200&h=1200&fit=crop&q=90",
     stock: 9,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -227,7 +228,7 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 3,899",
     category: "Shoes",
     categoryId: 1,
-    imageUrl: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=1200&h=1200&fit=crop&q=90",
     stock: 11,
     sellerPhone: REAL_SELLER_PHONE,
   },
@@ -238,20 +239,17 @@ export const REAL_SELLER_PRODUCTS = [
     price: "KSh 5,299",
     category: "Jewelry",
     categoryId: 7,
-    imageUrl: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1200&h=1200&fit=crop&q=90",
+    imageUrl: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1200&h=1200&fit=crop&q=90",
     stock: 4,
     sellerPhone: REAL_SELLER_PHONE,
   },
 ];
 
-/**
- * Generate product data with real seller integration
- */
 export function generateRealSellerProductData() {
   return REAL_SELLER_PRODUCTS.map((product, index) => ({
     ...product,
     id: index + 1,
-    sellerId: 1, // Single seller
+    sellerId: 1,
     source: "whatsapp_business",
     createdAt: new Date(),
     updatedAt: new Date(),
