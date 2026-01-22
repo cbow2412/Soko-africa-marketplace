@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import analyticsRouter from "../routes/analytics";
 import recommendationsRouter from "../routes/recommendations";
+import crmRouter from "../routes/crm";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -41,6 +42,8 @@ async function startServer() {
   app.use("/api/analytics", analyticsRouter);
   // Recommendations API
   app.use("/api/recommendations", recommendationsRouter);
+  // CRM API
+  app.use("/api/crm", crmRouter);
   // tRPC API
   app.use(
     "/api/trpc",
