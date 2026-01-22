@@ -13,7 +13,7 @@
  */
 
 import cron from "node-cron";
-import { WhatsAppScraperV2 } from "../services/whatsapp-scraper-v2";
+import { WhatsAppScraperV3 as WhatsAppScraperV2 } from "../services/whatsapp-scraper-v2";
 import { insertHybridVector, searchSimilarProducts } from "../services/siglip-milvus";
 import { cfEngine } from "../services/collaborative-filtering";
 
