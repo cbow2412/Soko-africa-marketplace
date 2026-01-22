@@ -1,9 +1,9 @@
 {
   "version": 2,
   "framework": "vite",
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
-  "devCommand": "pnpm dev",
+  "buildCommand": "npm install --legacy-peer-deps && npm run build",
+  "installCommand": "npm install --legacy-peer-deps",
+  "devCommand": "npm run dev",
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -15,6 +15,15 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VITE_API_URL": "@vite_api_url",
+    "DATABASE_URL": "@database_url",
+    "MILVUS_ADDRESS": "@milvus_address",
+    "HF_TOKEN": "@hf_token",
+    "GEMINI_API_KEY": "@gemini_api_key",
+    "AWS_ACCESS_KEY_ID": "@aws_access_key_id",
+    "AWS_SECRET_ACCESS_KEY": "@aws_secret_access_key",
+    "AWS_S3_BUCKET": "@aws_s3_bucket",
+    "OAUTH_SERVER_URL": "@oauth_server_url"
   }
 }
