@@ -54,18 +54,14 @@ When you deploy to Vercel or Railway, the `DATABASE_URL` environment variable wi
 ## **Phase 2: Vector Database Setup (Milvus Cloud)**
 
 ### **Current Status**
-⏳ **Pending** - You need to create a Milvus Cloud cluster.
+✅ **Complete** - Your Zilliz Cloud cluster is created and active.
 
-### **Steps to Complete**
-
-1. **Go to [Zilliz Cloud](https://cloud.zilliz.com)** (the managed Milvus service)
-2. **Sign up** with your email
-3. **Create a new cluster**:
-   - **Cluster Name**: `soko-africa-prod`
-   - **Region**: Choose closest to Kenya (e.g., `eu-central-1`)
-   - **Tier**: Standard (or Free tier for testing)
-4. **Get the connection string** (looks like `https://host:19530`)
-5. **Send me the connection string**, and I'll update the code
+**Cluster Details**:
+- **Cluster ID**: `in01-6a31db6c21d17ea`
+- **Region**: `aws-us-west-2`
+- **Endpoint**: `https://in01-6a31db6c21d17ea.aws-us-west-2.vectordb.zillizcloud.com:19530`
+- **Username**: `db_admin`
+- **Password**: `Lh8,f^u4!qNx54XU`
 
 ### **What Milvus Does**
 
