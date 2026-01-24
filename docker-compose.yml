@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # TiDB MySQL Database
+  tidb:
+    image: mysql:8.0
+    container_name: soko_tidb
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: soko_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - tidb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Milvus Vector Database
+  milvus:
+    image: milvusdb/milvus:latest
+    container_name: soko_milvus
+    environment:
+      COMMON_STORAGETYPE: local
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - milvus_data:/var/lib/milvus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: soko_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application
+  app:
+    build: .
+    container_name: soko_app
+    depends_on:
+      tidb:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: mysql://root:root@tidb:3306/soko_dev?sslMode=REQUIRED
+      MILVUS_ADDRESS: milvus:19530
+      MILVUS_USERNAME: minioadmin
+      MILVUS_PASSWORD: minioadmin
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  tidb_data:
+  milvus_data:
+  redis_data:

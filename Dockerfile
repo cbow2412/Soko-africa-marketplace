@@ -1,27 +1,36 @@
-# Use Node.js 22 as the base image
-FROM node:22-slim AS base
+FROM node:22-alpine AS builder
 
-# Install pnpm
-RUN npm install -g pnpm
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files and patches
-COPY package.json pnpm-lock.yaml ./
-COPY patches ./patches
+COPY package*.json ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
-# Copy the rest of the application
 COPY . .
 
-# Build the application
-RUN pnpm build
+RUN npm run build
 
-# Expose the port the app runs on
+FROM node:22-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache dumb-init
+
+COPY package*.json ./
+
+RUN npm ci --production
+
+COPY --from=builder /app/dist ./dist
+
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nodejs -u 1001
+USER nodejs
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+
 EXPOSE 3000
 
-# Start the application
-CMD ["pnpm", "start"]
+ENTRYPOINT ["dumb-init", "--"]
+
+CMD ["node", "dist/server/index.js"]
