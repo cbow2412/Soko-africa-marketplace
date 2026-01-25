@@ -16,6 +16,7 @@ Disrupt the African e-commerce landscape (Jumia/Kilimall) by replacing the "Cart
 - **Engine:** SigLIP-768 hybrid embeddings (60% Image / 40% Text).
 - **Vector Store:** Zilliz Cloud (Milvus) for sub-100ms similarity search.
 - **Logic:** When a user clicks a product, the engine calculates the cosine similarity to find "Similar Finds" in the 2,050+ item inventory.
+- **Secret Sauce (Zero-Storage Hotlinking):** We do NOT store images. The scraper extracts high-resolution URLs from Meta's CDN via Open Graph (OG) tags. This ensures zero storage costs and infinite scalability.
 
 ### 2. Production Stack
 - **Frontend:** React 19 + Vite + Tailwind (Optimized for Vercel Edge).
