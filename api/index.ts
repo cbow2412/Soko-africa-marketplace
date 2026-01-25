@@ -1,13 +1,23 @@
+import "dotenv/config";
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "../server/_core/oauth.ts";
-import { appRouter } from "../server/routers.ts";
-import { createContext } from "../server/_core/context.ts";
-import analyticsRouter from "../server/routes/analytics.ts";
-import recommendationsRouter from "../server/routes/recommendations.ts";
-import crmRouter from "../server/routes/crm.ts";
+import { registerOAuthRoutes } from "../server/_core/oauth";
+import { appRouter } from "../server/routers";
+import { createContext } from "../server/_core/context";
+import analyticsRouter from "../server/routes/analytics";
+import recommendationsRouter from "../server/routes/recommendations";
+import crmRouter from "../server/routes/crm";
+import { initializeVectorStore } from "../server/services/siglip-milvus";
+import { ENV } from "../server/_core/env";
 
 const app = express();
+
+// Initialize Vector Store for AI Visual Discovery
+if (ENV.enableMilvus && ENV.milvusAddress) {
+  initializeVectorStore(ENV.milvusAddress).catch(err => {
+    console.error("[Server] Failed to initialize Milvus:", err);
+  });
+}
 
 // Configure body parser
 app.use(express.json({ limit: "50mb" }));

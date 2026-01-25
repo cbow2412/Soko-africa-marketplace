@@ -4,33 +4,19 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "env": {
-    "NODE_ENV": "production",
-    "DATABASE_URL": "@database_url",
-    "MILVUS_ADDRESS": "@milvus_address",
-    "MILVUS_USERNAME": "@milvus_username",
-    "MILVUS_PASSWORD": "@milvus_password",
-    "HF_TOKEN": "@hf_token",
-    "OPENAI_API_KEY": "@openai_api_key",
-    "JWT_SECRET": "@jwt_secret",
-    "REDIS_HOST": "@redis_host",
-    "REDIS_PORT": "@redis_port",
-    "REDIS_PASSWORD": "@redis_password"
+    "NODE_ENV": "production"
   },
-  "regions": ["iad1", "lhr1", "cle1"],
+  "regions": ["fra1", "iad1"],
   "functions": {
-    "server/**": {
+    "server/index.ts": {
       "memory": 1024,
       "maxDuration": 60
     }
   },
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
-        },
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
@@ -42,10 +28,15 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
-        },
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
         {
-          "key": "Strict-Transport-Security",
-          "value": "max-age=31536000; includeSubDomains"
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     }
@@ -53,7 +44,15 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server/api/$1"
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/trpc/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
