@@ -9,10 +9,10 @@ export default function Profile() {
   const menuItems = [
     { icon: <Package size={20} />, label: "My Orders", path: "/orders" },
     { icon: <Heart size={20} />, label: "Watchlist", path: "/watchlist" },
-    { icon: <Bell size={20} />, label: "Notifications", path: "#" },
-    { icon: <CreditCard size={20} />, label: "Payments", path: "#" },
-    { icon: <Shield size={20} />, label: "Privacy & Security", path: "#" },
-    { icon: <Settings size={20} />, label: "Settings", path: "#" },
+    { icon: <Bell size={20} />, label: "Notifications", path: "/notifications" },
+    { icon: <CreditCard size={20} />, label: "Payments", path: "/payments" },
+    { icon: <Shield size={20} />, label: "Privacy & Security", path: "/security" },
+    { icon: <Settings size={20} />, label: "Settings", path: "/settings" },
   ];
 
   return (

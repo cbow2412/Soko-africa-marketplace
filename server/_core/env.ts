@@ -7,4 +7,17 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  
+  // Milvus Configuration
+  milvusAddress: process.env.MILVUS_ADDRESS ?? "",
+  milvusUsername: process.env.MILVUS_USERNAME ?? "",
+  milvusPassword: process.env.MILVUS_PASSWORD ?? "",
+  
+  // AI/ML Services
+  hfToken: process.env.HF_TOKEN ?? "",
+  geminiApiKey: process.env.GEMINI_API_KEY ?? "",
+  
+  // Feature Flags
+  enableMilvus: process.env.ENABLE_MILVUS === "true",
+  enableGeminiQC: process.env.ENABLE_GEMINI_QC === "true",
 };

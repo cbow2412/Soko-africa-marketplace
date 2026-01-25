@@ -1,4 +1,5 @@
 import { MilvusClient } from "@milvus.io/milvus2-sdk-node";
+import { ENV } from "../_core/env";
 
 /**
  * Milvus Vector Database Client
@@ -44,9 +45,9 @@ class MilvusVectorDB {
       console.log("[Milvus] Connecting to Milvus...");
 
       this.client = new MilvusClient({
-        address: config.address || "localhost:19530",
-        username: config.username,
-        password: config.password,
+        address: config.address || ENV.milvusAddress || "localhost:19530",
+        username: config.username || ENV.milvusUsername,
+        password: config.password || ENV.milvusPassword,
         timeout: config.timeout || 30000,
       });
 

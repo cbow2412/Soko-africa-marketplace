@@ -1,4 +1,5 @@
 import axios from "axios";
+import { ENV } from "../_core/env";
 
 /**
  * SigLIP Embeddings Service v3 - Hybrid Vectorization
@@ -112,8 +113,8 @@ export class RealSigLIPEmbeddings {
 
     try {
       // Try Hugging Face API if token available
-      const hfToken = process.env.HF_TOKEN;
-      if (hfToken) {
+      const hfToken = ENV.hfToken;
+      if (hfToken && hfToken !== "your_hugging_face_token_here") {
         try {
           const response = await axios.post(
             "https://api-inference.huggingface.co/models/google/siglip-base-patch16-224",

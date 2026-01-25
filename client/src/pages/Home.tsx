@@ -163,7 +163,7 @@ export default function Home() {
             <Search size={18} className="text-slate-500 group-focus-within:text-amber-500 transition-colors" />
             <input
               type="text"
-              placeholder="Search 1,184+ authentic Kenyan finds..."
+              placeholder="Search 2,050+ luxury Nairobi finds..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="bg-transparent outline-none flex-1 text-sm placeholder-slate-600 font-medium"

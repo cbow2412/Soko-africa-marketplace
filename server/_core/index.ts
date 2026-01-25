@@ -10,6 +10,8 @@ import { serveStatic, setupVite } from "./vite";
 import analyticsRouter from "../routes/analytics";
 import recommendationsRouter from "../routes/recommendations";
 import crmRouter from "../routes/crm";
+import { initializeVectorStore } from "../services/siglip-milvus";
+import { ENV } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,6 +33,13 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Initialize Vector Store for AI Visual Discovery
+  if (ENV.enableMilvus && ENV.milvusAddress) {
+    await initializeVectorStore(ENV.milvusAddress).catch(err => {
+      console.error("[Server] Failed to initialize Milvus:", err);
+    });
+  }
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

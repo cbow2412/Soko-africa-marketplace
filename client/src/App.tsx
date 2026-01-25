@@ -10,8 +10,10 @@ import SellerOnboarding from "./pages/SellerOnboarding";
 import Watchlist from "./pages/Watchlist";
 import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import CommercialDashboard from "./pages/CommercialDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminControl from "./pages/AdminControl";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -22,9 +24,11 @@ function Router() {
       <Route path={"/seller/onboarding"} component={SellerOnboarding} />
       <Route path={"/watchlist"} component={Watchlist} />
       <Route path={"/orders"} component={Orders} />
-      <Route path={"profile"} component={Profile} />
-      <Route path={"dashboard"} component={CommercialDashboard} />
+      <Route path={"/profile"} component={Profile} />
+      <Route path={"/settings"} component={Settings} />
+      <Route path={"/dashboard"} component={CommercialDashboard} />
       <Route path={"/admin"} component={AdminDashboard} />
+      <Route path={"/admin/control"} component={AdminControl} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
