@@ -1,22 +1,59 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "framework": "vite",
-  "buildCommand": "pnpm build",
-  "installCommand": "pnpm install",
-  "devCommand": "npm run dev",
-  "outputDirectory": "dist/public",
+  "env": {
+    "NODE_ENV": "production",
+    "DATABASE_URL": "@database_url",
+    "MILVUS_ADDRESS": "@milvus_address",
+    "MILVUS_USERNAME": "@milvus_username",
+    "MILVUS_PASSWORD": "@milvus_password",
+    "HF_TOKEN": "@hf_token",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "JWT_SECRET": "@jwt_secret",
+    "REDIS_HOST": "@redis_host",
+    "REDIS_PORT": "@redis_port",
+    "REDIS_PASSWORD": "@redis_password"
+  },
+  "regions": ["iad1", "lhr1", "cle1"],
+  "functions": {
+    "server/**": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/server/api/$1"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "VITE_API_URL": "https://soko-africa-marketplace.vercel.app"
-  }
+  ]
 }
