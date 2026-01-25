@@ -24,7 +24,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Run ESLint
         run: npm run lint --if-present || echo "No lint script found"
@@ -57,7 +57,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Run tests
         run: npm test --if-present || echo "No test script found"
@@ -79,7 +79,7 @@ jobs:
           cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       
       - name: Build application
         run: npm run build --if-present || echo "Build skipped"
@@ -134,17 +134,23 @@ jobs:
         continue-on-error: true
       
       - name: Deploy to production
-        if: ${{ secrets.DEPLOY_HOST != '' }}
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
         run: |
+          if [ -z "$DEPLOY_HOST" ]; then
+            echo "⚠️  Deployment skipped: DEPLOY_HOST secret not configured"
+            echo "Configure GitHub secrets to enable production deployment"
+            exit 0
+          fi
+          
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
-          scp -i ~/.ssh/deploy_key -r dist/ $DEPLOY_USER@$DEPLOY_HOST:/app/ || echo "Deploy skipped - secrets not configured"
+          
+          scp -i ~/.ssh/deploy_key -r dist/ $DEPLOY_USER@$DEPLOY_HOST:/app/ || echo "Deploy skipped"
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'cd /app && npm ci --production && pm2 restart soko' || echo "Deploy skipped"
         continue-on-error: true
 
@@ -167,16 +173,22 @@ jobs:
         continue-on-error: true
       
       - name: Deploy to staging
-        if: ${{ secrets.STAGING_DEPLOY_HOST != '' }}
         env:
           DEPLOY_KEY: ${{ secrets.STAGING_DEPLOY_KEY }}
           DEPLOY_HOST: ${{ secrets.STAGING_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STAGING_DEPLOY_USER }}
         run: |
+          if [ -z "$DEPLOY_HOST" ]; then
+            echo "⚠️  Deployment skipped: STAGING_DEPLOY_HOST secret not configured"
+            echo "Configure GitHub secrets to enable staging deployment"
+            exit 0
+          fi
+          
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts 2>/dev/null || true
-          scp -i ~/.ssh/deploy_key -r dist/ $DEPLOY_USER@$DEPLOY_HOST:/app/ || echo "Deploy skipped - secrets not configured"
+          
+          scp -i ~/.ssh/deploy_key -r dist/ $DEPLOY_USER@$DEPLOY_HOST:/app/ || echo "Deploy skipped"
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'cd /app && npm ci && pm2 restart soko-staging' || echo "Deploy skipped"
         continue-on-error: true
