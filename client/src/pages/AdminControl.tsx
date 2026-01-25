@@ -1,141 +1,211 @@
-import { trpc } from "@/lib/trpc";
+import React, { useState } from "react";
+import { trpc } from "../utils/trpc";
 import { 
-  Shield, 
+  Terminal, 
   Activity, 
-  Users, 
-  Package, 
+  Database, 
+  Cpu, 
+  Shield, 
+  Search, 
   Zap, 
-  Lock, 
-  Server, 
-  Database,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle
+  CheckCircle, 
+  AlertCircle,
+  Loader2,
+  ExternalLink,
+  PlusCircle
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useLocation } from "wouter";
 
-export default function AdminControl() {
-  const [, navigate] = useLocation();
-  const { data: stats, isLoading, refetch } = trpc.admin.getStats.useQuery();
+const AdminControl = () => {
+  const [url, setUrl] = useState("");
+  const [logs, setLogs] = useState<string[]>(["[System] Admin Command & Control Center Initialized..."]);
+  const [ingestedProduct, setIngestedProduct] = useState<any>(null);
 
-  if (isLoading) return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
-    </div>
-  );
+  const addLog = (msg: string) => {
+    setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 50));
+  };
+
+  const mutation = trpc.ingestion.scoutAndHydrate.useMutation({
+    onSuccess: (data) => {
+      addLog(`[Success] Hydrated: ${data.product.name}`);
+      addLog(`[Vector] SigLIP-768 embeddings generated.`);
+      setIngestedProduct(data.product);
+    },
+    onError: (error) => {
+      addLog(`[Error] Ingestion failed: ${error.message}`);
+    }
+  });
+
+  const handleIngest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url) return;
+    addLog(`[Scout] Initiating ingestion for: ${url}`);
+    mutation.mutate({ url });
+    setUrl("");
+  };
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-end mb-12">
+    <div className="min-h-screen bg-black text-green-500 font-mono p-8">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-green-900 pb-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Terminal className="w-8 h-8" />
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-amber-500 rounded-lg">
-                <Shield size={20} className="text-black" />
-              </div>
-              <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.4em]">Root Access Granted</span>
-            </div>
-            <h1 className="text-5xl font-black tracking-tighter">COMMAND & CONTROL</h1>
-            <p className="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">Enterprise Infrastructure Management</p>
-          </div>
-          <div className="flex gap-4">
-            <Button onClick={() => refetch()} variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 rounded-xl">
-              <RefreshCw size={16} className="mr-2" /> Refresh System
-            </Button>
-            <Button onClick={() => navigate("/")} className="bg-white text-black font-black rounded-xl px-8">
-              Exit Terminal
-            </Button>
+            <h1 className="text-2xl font-bold tracking-tighter">SOKO_ADMIN_v1.0.4</h1>
+            <p className="text-xs text-green-800 uppercase tracking-widest">Enterprise Command & Control Center</p>
           </div>
         </div>
-
-        {/* System Vitals */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <VitalCard title="Total Inventory" value="2,050" icon={<Package className="text-amber-500" />} status="Healthy" />
-          <VitalCard title="Active Leads" value="142" icon={<Activity className="text-green-500" />} status="Live" />
-          <VitalCard title="System Uptime" value="99.99%" icon={<Server className="text-blue-500" />} status="Stable" />
-          <VitalCard title="Vector Store" status="Active" value="SigLIP-768" icon={<Zap className="text-purple-500" />} />
+        <div className="flex gap-6 text-xs uppercase tracking-widest">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span>Milvus: Connected</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span>TiDB: Active</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span>SigLIP: Ready</span>
+          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Real-time Logs */}
-          <Card className="lg:col-span-2 bg-white/5 border-white/10 rounded-3xl p-8">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-xl font-black flex items-center gap-3">
-                <Database size={24} className="text-amber-500" /> INFRASTRUCTURE LOGS
-              </h2>
-              <span className="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-black rounded-lg uppercase">Streaming Live</span>
-            </div>
-            <div className="space-y-4 font-mono text-[11px]">
-              <LogEntry time="13:42:01" type="INFO" msg="SigLIP Hybrid Vectorization completed for Batch #42" />
-              <LogEntry time="13:41:55" type="WARN" msg="High latency detected in Zilliz Cloud (us-west-2)" />
-              <LogEntry time="13:40:12" type="INFO" msg="New lead captured: WhatsApp Direct-to-Chat (+2547...)" />
-              <LogEntry time="13:38:44" type="SUCCESS" msg="Database migration to TiDB Serverless successful" />
-              <LogEntry time="13:35:10" type="INFO" msg="Heartbeat Sync 2.0: 2,050 products verified" />
-            </div>
-          </Card>
-
-          {/* Admin Actions */}
-          <Card className="bg-white/5 border-white/10 rounded-3xl p-8">
-            <h2 className="text-xl font-black mb-8 flex items-center gap-3">
-              <Lock size={24} className="text-red-500" /> SYSTEM ACTIONS
-            </h2>
-            <div className="space-y-4">
-              <ActionButton title="Force Global Re-Sync" icon={<RefreshCw size={18} />} color="bg-amber-500" />
-              <ActionButton title="Purge Vector Cache" icon={<Zap size={18} />} color="bg-white/10" />
-              <ActionButton title="Emergency Lockdown" icon={<AlertTriangle size={18} />} color="bg-red-500/20 text-red-500" />
+      <div className="grid grid-cols-12 gap-8">
+        {/* Left Column: Ingestion Terminal */}
+        <div className="col-span-12 lg:col-span-7 space-y-8">
+          <div className="bg-zinc-950 border border-green-900 p-6 rounded-lg shadow-2xl">
+            <div className="flex items-center gap-2 mb-6">
+              <Zap className="w-5 h-5" />
+              <h2 className="text-lg font-bold uppercase tracking-wider">Scout & Hydrate Terminal</h2>
             </div>
             
-            <div className="mt-12 p-6 bg-black/40 rounded-2xl border border-white/5">
-              <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Security Protocol</h3>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">Role:</span>
-                <span className="font-black text-amber-500">SUPER_ADMIN</span>
+            <form onSubmit={handleIngest} className="space-y-4">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="PASTE WHATSAPP CATALOG URL (e.g. wa.me/c/...)"
+                  className="w-full bg-black border border-green-900 p-4 rounded text-green-400 placeholder-green-900 focus:outline-none focus:border-green-500 transition-colors"
+                />
+                <button 
+                  disabled={mutation.isLoading}
+                  className="absolute right-2 top-2 bottom-2 bg-green-900 hover:bg-green-700 text-black px-6 rounded font-bold transition-colors disabled:opacity-50"
+                >
+                  {mutation.isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "INGEST"}
+                </button>
               </div>
-              <div className="flex items-center justify-between text-xs mt-2">
-                <span className="text-slate-400">Auth:</span>
-                <span className="font-black text-green-500 flex items-center gap-1">
-                  <CheckCircle size={12} /> VERIFIED
-                </span>
+            </form>
+
+            {ingestedProduct && (
+              <div className="mt-8 border-t border-green-900 pt-6 animate-in fade-in slide-in-from-top-4">
+                <div className="flex gap-6">
+                  <img 
+                    src={ingestedProduct.imageUrl} 
+                    alt={ingestedProduct.name} 
+                    className="w-32 h-32 object-cover rounded border border-green-900"
+                  />
+                  <div className="flex-1 space-y-2">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-xl font-bold text-white">{ingestedProduct.name}</h3>
+                      <span className="text-green-400 font-bold">{ingestedProduct.price}</span>
+                    </div>
+                    <p className="text-sm text-zinc-400 line-clamp-2">{ingestedProduct.description}</p>
+                    <div className="flex gap-4 pt-2">
+                      <div className="flex items-center gap-1 text-[10px] bg-green-900/20 px-2 py-1 rounded">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>HOTLINKED (META CDN)</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] bg-blue-900/20 px-2 py-1 rounded text-blue-400">
+                        <Cpu className="w-3 h-3" />
+                        <span>SIGLIP-768 VECTORIZED</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* System Logs */}
+          <div className="bg-zinc-950 border border-green-900 p-6 rounded-lg h-96 overflow-hidden flex flex-col">
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="w-5 h-5" />
+              <h2 className="text-lg font-bold uppercase tracking-wider">Live Infrastructure Logs</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto space-y-1 text-xs scrollbar-hide">
+              {logs.map((log, i) => (
+                <div key={i} className={log.includes("[Error]") ? "text-red-500" : log.includes("[Success]") ? "text-blue-400" : "text-green-700"}>
+                  {log}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: System Vitals */}
+        <div className="col-span-12 lg:col-span-5 space-y-8">
+          <div className="bg-zinc-950 border border-green-900 p-6 rounded-lg">
+            <div className="flex items-center gap-2 mb-6">
+              <Shield className="w-5 h-5" />
+              <h2 className="text-lg font-bold uppercase tracking-wider">System Vitals</h2>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs uppercase tracking-widest">
+                  <span>Inventory Hydration</span>
+                  <span>2,050 / 10,000</span>
+                </div>
+                <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden">
+                  <div className="bg-green-500 h-full w-[20.5%] shadow-[0_0_10px_#22c55e]" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs uppercase tracking-widest">
+                  <span>Vector Store Load</span>
+                  <span>42%</span>
+                </div>
+                <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden">
+                  <div className="bg-blue-500 h-full w-[42%] shadow-[0_0_10px_#3b82f6]" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="bg-black border border-green-900 p-4 rounded text-center">
+                  <div className="text-2xl font-bold text-white">1.2k</div>
+                  <div className="text-[10px] uppercase tracking-widest text-green-800">Leads Generated</div>
+                </div>
+                <div className="bg-black border border-green-900 p-4 rounded text-center">
+                  <div className="text-2xl font-bold text-white">99.9%</div>
+                  <div className="text-[10px] uppercase tracking-widest text-green-800">Uptime</div>
+                </div>
               </div>
             </div>
-          </Card>
+          </div>
+
+          <div className="bg-zinc-950 border border-green-900 p-6 rounded-lg">
+            <div className="flex items-center gap-2 mb-6">
+              <Database className="w-5 h-5" />
+              <h2 className="text-lg font-bold uppercase tracking-wider">Quick Actions</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              <button className="w-full bg-green-900/10 border border-green-900 p-3 rounded text-left text-xs hover:bg-green-900/20 transition-colors flex items-center justify-between">
+                <span>RE-INDEX VECTOR STORE</span>
+                <Zap className="w-3 h-3" />
+              </button>
+              <button className="w-full bg-green-900/10 border border-green-900 p-3 rounded text-left text-xs hover:bg-green-900/20 transition-colors flex items-center justify-between">
+                <span>FLUSH CACHE (REDIS)</span>
+                <Database className="w-3 h-3" />
+              </button>
+              <button className="w-full bg-red-900/10 border border-red-900 p-3 rounded text-left text-xs text-red-500 hover:bg-red-900/20 transition-colors flex items-center justify-between">
+                <span>EMERGENCY SYSTEM LOCK</span>
+                <Shield className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
-function VitalCard({ title, value, icon, status }: any) {
-  return (
-    <Card className="bg-white/5 border-white/10 rounded-3xl p-6 hover:border-white/20 transition-all">
-      <div className="flex justify-between items-start mb-4">
-        <div className="p-3 bg-white/5 rounded-2xl">{icon}</div>
-        <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">{status}</span>
-      </div>
-      <div className="text-4xl font-black tracking-tighter mb-1">{value}</div>
-      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{title}</div>
-    </Card>
-  );
-}
-
-function LogEntry({ time, type, msg }: any) {
-  const color = type === 'WARN' ? 'text-amber-500' : type === 'SUCCESS' ? 'text-green-500' : 'text-blue-500';
-  return (
-    <div className="flex gap-4 border-b border-white/5 pb-2">
-      <span className="text-slate-600">[{time}]</span>
-      <span className={`font-black ${color}`}>[{type}]</span>
-      <span className="text-slate-300">{msg}</span>
-    </div>
-  );
-}
-
-function ActionButton({ title, icon, color }: any) {
-  return (
-    <button className={`w-full py-4 ${color} ${color.includes('bg-white') ? 'text-white' : 'text-black'} font-black rounded-2xl hover:opacity-90 transition-all flex items-center justify-center gap-3`}>
-      {icon} {title}
-    </button>
-  );
-}
+export default AdminControl;

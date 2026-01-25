@@ -9,10 +9,26 @@ import { findSimilarProducts } from "./embeddings";
 import { RealSigLIPEmbeddings } from "./services/siglip-real";
 import { TRPCError } from "@trpc/server";
 import { adminRouter } from "./routes/admin";
+import { ScoutHydrateService } from "./services/scout-hydrate";
 
 export const appRouter = router({
   admin: adminRouter,
   system: systemRouter,
+  ingestion: router({
+    scoutAndHydrate: publicProcedure
+      .input(z.object({ url: z.string().url() }))
+      .mutation(async ({ input }) => {
+        try {
+          const product = await ScoutHydrateService.hydrateFromUrl(input.url);
+          return { success: true, product };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || "Failed to ingest product",
+          });
+        }
+      }),
+  }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

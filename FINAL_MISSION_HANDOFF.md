@@ -36,7 +36,7 @@ Disrupt the African e-commerce landscape (Jumia/Kilimall) by replacing the "Cart
 | Component | Status | Location |
 | :--- | :--- | :--- |
 | **Live UI** | ✅ LIVE | [soko-africa-marketplace.vercel.app](https://soko-africa-marketplace.vercel.app) |
-| **Admin Control** | ✅ LIVE | `/admin/control` (Real-time system monitoring) |
+| **Admin Control** | ✅ LIVE | `/admin/control` (Real-time system monitoring & Ingestion Terminal) |
 | **Inventory** | ✅ HYDRATED | 2,050+ Luxury Nairobi items in `server/db-nairobi-data.ts` |
 | **CI/CD** | ✅ ACTIVE | GitHub -> Vercel Auto-deploy |
 
@@ -45,8 +45,9 @@ Disrupt the African e-commerce landscape (Jumia/Kilimall) by replacing the "Cart
 ## 🚀 Roadmap for the Next Agent (The "Last Mile")
 
 ### 1. Mass Ingestion (Priority: High)
-- **Task:** Build the "Scout" tool to ingest 10,000+ items from WhatsApp Business catalogs.
-- **File to Edit:** `server/services/whatsapp-scraper.ts`.
+- **Task:** Scale the "Scout & Hydrate" terminal to handle bulk CSV/List ingestion.
+- **Current State:** Single-URL ingestion is LIVE in `/admin/control`.
+- **File to Edit:** `server/services/scout-hydrate.ts`.
 
 ### 2. Mobile PWA Transformation
 - **Task:** Configure `vite-plugin-pwa` to make the site installable on Nairobi users' home screens.
