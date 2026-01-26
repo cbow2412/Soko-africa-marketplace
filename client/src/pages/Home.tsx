@@ -277,9 +277,12 @@ export default function Home() {
                           src={product.imageUrl || "https://via.placeholder.com/300?text=No+Image"}
                           alt={product.name}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
+                          loading="lazy"
                           onError={e => {
                             (e.target as HTMLImageElement).src =
-                              "https://via.placeholder.com/300?text=No+Image";
+                              "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=500&q=80";
                           }}
                         />
 
