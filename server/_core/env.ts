@@ -4,7 +4,7 @@ export const ENV = {
   databaseUrl: process.env.DATABASE_URL ?? "mysql://4USanJzjkavoy7p.root:ezUCO2pIXWrn1cb7@gateway01-privatelink.eu-central-1.prod.aws.tidbcloud.com:4000/test?sslMode=REQUIRED",
   oAuthServerUrl: process.env.OAUTH_SERVER_URL ?? "https://oauth.soko-africa.com",
   ownerOpenId: process.env.OWNER_OPEN_ID ?? "",
-  isProduction: true,
+  isProduction: true, // Enterprise Production Mode Active
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
   
