@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getProducts, getProductsByCategory, getProductById, getCategories, getSellerById, getCommentsByProduct, getUserFavorites, createSeller, createSyncLog, getSyncStatus, getVisualSimilarity } from "./db";
 import { getProductEmbedding, getAllProductEmbeddings } from "./embeddings-db";
 import { findSimilarProducts } from "./embeddings";
-import { RealSigLIPEmbeddings } from "./services/siglip-real";
+// import { RealSigLIPEmbeddings } from "./services/siglip-real"; // Removed to prevent module-level crash
 import { TRPCError } from "@trpc/server";
 import { adminRouter } from "./routes/admin";
 import { ScoutHydrateService } from "./services/scout-hydrate";
