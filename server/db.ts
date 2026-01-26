@@ -2,11 +2,15 @@ import { eq } from "drizzle-orm";
 import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
 import * as mysqlSchema from "../drizzle/schema";
 import { ENV } from './_core/env';
-// import { RealSigLIPEmbeddings } from './services/siglip-real'; // Removed to prevent synchronous module-level crash
-import { generateNairobiMarketData, WHATSAPP_BUSINESS_NUMBER } from './db-nairobi-data';
+import { 
+  getProducts as getProductsInit,
+  getProductById as getProductByIdInit,
+  getProductsByCategory as getProductsByCategoryInit,
+  searchProducts as searchProductsInit,
+  getAllProducts
+} from './db-init';
 
-// In-memory fallback for the sandbox environment to ensure 100% uptime and seamless continuation
-let products: any[] = [];
+// In-memory fallback for the sandbox environment
 let productEmbeddings: Map<number, number[]> = new Map();
 let sellers: any[] = [];
 let syncLogs: any[] = [];
@@ -16,51 +20,6 @@ let categories: any[] = [
   { id: 5, name: "Womens Accessories", description: "Trendy womens accessories" },
   { id: 7, name: "Jewelry", description: "Luxury jewelry" },
 ];
-
-// Initialize high-fidelity Nairobi market products
-function initializeProducts() {
-  if (products.length > 0) return;
-  console.log("🎯 Initializing High-Fidelity Nairobi Market Data");
-  console.log(`   Seller: +${WHATSAPP_BUSINESS_NUMBER}`);
-  console.log("   Volume: 2,000+ Luxury Items");
-
-  // Generate 2,000+ realistic products
-  products = generateNairobiMarketData(2050);
-
-  console.log(`✅ Loaded ${products.length} enterprise-grade products`);
-
-  // Vectorization logic is commented out to prevent serverless function cold-start crash.
-  // This should be moved to a background job or a dedicated service.
-  /*
-  (async () => {
-    console.log("[Database] Starting batch vectorization for 2,000+ products...");
-    const batchSize = 50;
-    for (let i = 0; i < products.length; i += batchSize) {
-      const batch = products.slice(i, i + batchSize);
-      await Promise.all(batch.map(async (product) => {
-        try {
-          // In dev/sandbox, we use a deterministic but realistic mock for speed
-          // In production, this calls the SigLIP API
-          const mockEmbedding = new Array(768).fill(0).map((_, idx) => {
-            // Deterministic based on category and name to ensure similarity works
-            const seed = (product.categoryId * 100) + (product.name.length * idx);
-            return Math.sin(seed) * 0.5;
-          });
-          productEmbeddings.set(product.id, mockEmbedding);
-        } catch (error) {
-          const mockEmbedding = new Array(768).fill(0).map(() => Math.random() * 2 - 1);
-          productEmbeddings.set(product.id, mockEmbedding);
-        }
-      }));
-    }
-    console.log(`✅ Vectorized ${productEmbeddings.size} products for visual discovery`);
-  })();
-  */
-
-  console.log(`✅ All products linked to WhatsApp: +${WHATSAPP_BUSINESS_NUMBER}`);
-}
-
-
 
 let _db: any = null;
 
@@ -95,39 +54,21 @@ export async function getUserByOpenId(openId: string) {
   return undefined;
 }
 
+// Re-export product functions from db-init
 export async function getProducts(limit: number = 20, offset: number = 0) {
-  if (products.length === 0) {
-    initializeProducts();
-  }
-  return products.slice(offset, offset + limit);
+  return await getProductsInit(limit, offset);
 }
 
 export async function getProductById(id: number) {
-  if (products.length === 0) {
-    initializeProducts();
-  }
-  return products.find(p => p.id === id);
+  return await getProductByIdInit(id);
 }
 
 export async function getProductsByCategory(categoryId: number, limit: number = 20, offset: number = 0) {
-  if (products.length === 0) {
-    initializeProducts();
-  }
-  const filtered = products.filter(p => p.categoryId === categoryId);
-  return filtered.slice(offset, offset + limit);
+  return await getProductsByCategoryInit(categoryId, limit, offset);
 }
 
 export async function searchProducts(query: string, limit: number = 20) {
-  if (products.length === 0) {
-    initializeProducts();
-  }
-  const lowerQuery = query.toLowerCase();
-  return products
-    .filter(p => 
-      p.name.toLowerCase().includes(lowerQuery) || 
-      p.description.toLowerCase().includes(lowerQuery)
-    )
-    .slice(0, limit);
+  return await searchProductsInit(query, limit);
 }
 
 export async function getCategories() {
@@ -135,82 +76,58 @@ export async function getCategories() {
 }
 
 export async function getProductEmbedding(productId: number): Promise<number[] | null> {
-  if (products.length === 0) {
-    initializeProducts();
-  }
   return productEmbeddings.get(productId) || null;
 }
 
 export async function getSimilarProducts(productId: number, limit: number = 5) {
-  if (products.length === 0) {
-    initializeProducts();
-  }
   const embedding = productEmbeddings.get(productId);
   if (!embedding) return [];
 
-  const similarities = products
+  const similarities = (await getAllProducts())
     .filter(p => p.id !== productId)
     .map(p => {
-      const otherEmbedding = productEmbeddings.get(p.id);
-      if (!otherEmbedding) return { product: p, similarity: 0 };
-
-      // Calculate cosine similarity
-      let dotProduct = 0;
-      let normA = 0;
-      let normB = 0;
-
-      for (let i = 0; i < embedding.length; i++) {
-        dotProduct += embedding[i] * otherEmbedding[i];
-        normA += embedding[i] * embedding[i];
-        normB += otherEmbedding[i] * otherEmbedding[i];
-      }
-
-      const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+      const pEmbedding = productEmbeddings.get(p.id) || [];
+      const similarity = cosineSimilarity(embedding, pEmbedding);
       return { product: p, similarity };
     })
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, limit)
-    .map(item => item.product);
+    .slice(0, limit);
 
-  return similarities;
+  return similarities.map(s => s.product);
+}
+
+function cosineSimilarity(a: number[], b: number[]): number {
+  if (a.length === 0 || b.length === 0) return 0;
+  let dotProduct = 0;
+  let magnitudeA = 0;
+  let magnitudeB = 0;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    dotProduct += a[i] * b[i];
+    magnitudeA += a[i] * a[i];
+    magnitudeB += b[i] * b[i];
+  }
+  magnitudeA = Math.sqrt(magnitudeA);
+  magnitudeB = Math.sqrt(magnitudeB);
+  if (magnitudeA === 0 || magnitudeB === 0) return 0;
+  return dotProduct / (magnitudeA * magnitudeB);
 }
 
 export async function recordInteraction(userId: string, productId: number, interactionType: string) {
-  // This would be persisted to the database in production
   console.log(`[Analytics] User ${userId} performed ${interactionType} on product ${productId}`);
 }
 
 export async function getAnalyticsDashboard(userId: string) {
-  if (products.length === 0) {
-    initializeProducts();
-  }
+  const allProducts = await getAllProducts();
   return {
     totalViews: Math.floor(Math.random() * 1000),
     totalClicks: Math.floor(Math.random() * 500),
     conversionRate: (Math.random() * 15).toFixed(2),
-    topProducts: products.slice(0, 5),
+    topProducts: allProducts.slice(0, 5),
   };
 }
 
-export async function insertCatalogSyncLog(log: any) {
-  syncLogs.push(log);
-}
-
-export async function getCatalogSyncLogs(limit: number = 50) {
-  return syncLogs.slice(-limit);
-}
-
-export async function getSellerById(sellerId: number) {
-  return sellers.find(s => s.id === sellerId);
-}
-
-export async function upsertSeller(seller: any) {
-  const index = sellers.findIndex(s => s.id === seller.id);
-  if (index >= 0) {
-    sellers[index] = seller;
-  } else {
-    sellers.push(seller);
-  }
+export async function getSellerById(id: number) {
+  return sellers.find(s => s.id === id);
 }
 
 export async function getCommentsByProduct(productId: number) {
@@ -222,19 +139,22 @@ export async function getUserFavorites(userId: string) {
 }
 
 export async function createSeller(seller: any) {
-  sellers.push(seller);
-  return seller;
+  const newSeller = { ...seller, id: sellers.length + 1 };
+  sellers.push(newSeller);
+  return { success: true, sellerId: newSeller.id };
 }
 
 export async function createSyncLog(log: any) {
   syncLogs.push(log);
-  return log;
+  return { success: true };
 }
 
 export async function getSyncStatus(sellerId: number) {
-  return { status: 'synced', lastSync: new Date() };
+  const log = syncLogs.find(l => l.sellerId === sellerId);
+  return log || { status: 'pending' };
 }
 
-export async function getVisualSimilarity(productId: number, limit: number = 5) {
-  return getSimilarProducts(productId, limit);
+export async function getVisualSimilarity(productId: number, limit: number = 10) {
+  const allProducts = await getAllProducts();
+  return allProducts.filter(p => p.id !== productId).slice(0, limit);
 }
