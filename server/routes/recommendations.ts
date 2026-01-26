@@ -22,7 +22,7 @@ const router = express.Router();
  * - limit: number (default: 10)
  * - includeVisualSimilarity: boolean (default: true)
  */
-router.get("/personalized/:userId", async (req: Request, res: Response) => {
+router.get("/personalized/:userId", async (req: any, res: any) => {
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -74,7 +74,7 @@ router.get("/personalized/:userId", async (req: Request, res: Response) => {
  *   interactionType: "view" | "click" | "purchase" | "wishlist"
  * }
  */
-router.post("/interaction", async (req: Request, res: Response) => {
+router.post("/interaction", async (req: any, res: any) => {
   try {
     const { userId, productId, interactionType } = req.body;
 
@@ -123,7 +123,7 @@ router.post("/interaction", async (req: Request, res: Response) => {
  * 
  * Get statistics about the recommendation engine
  */
-router.get("/stats", async (req: Request, res: Response) => {
+router.get("/stats", async (req: any, res: any) => {
   try {
     const stats = cfEngine.getStats();
 
@@ -144,7 +144,7 @@ router.get("/stats", async (req: Request, res: Response) => {
  * Train the collaborative filtering model
  * (Usually called periodically by a background worker)
  */
-router.post("/train", async (req: Request, res: Response) => {
+router.post("/train", async (req: any, res: any) => {
   try {
     console.log("[Recommendations] Starting model training...");
 
@@ -169,7 +169,7 @@ router.post("/train", async (req: Request, res: Response) => {
  * 
  * Get trending products (most viewed/clicked in last 24 hours)
  */
-router.get("/trending", async (req: Request, res: Response) => {
+router.get("/trending", async (req: any, res: any) => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
 

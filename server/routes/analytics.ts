@@ -17,7 +17,7 @@ const conversionEvents: ConversionEvent[] = [];
  * POST /api/analytics/click
  * Track a click event
  */
-router.post("/click", (req, res) => {
+router.post("/click", (req: any, res: any) => {
   try {
     const { productId, sellerId, userId, source, sessionId, deviceType, userAgent } = req.body;
 
@@ -51,7 +51,7 @@ router.post("/click", (req, res) => {
  * POST /api/analytics/conversion
  * Track a conversion event
  */
-router.post("/conversion", (req, res) => {
+router.post("/conversion", (req: any, res: any) => {
   try {
     const { productId, sellerId, userId, amount, currency, conversionType } = req.body;
 
@@ -84,7 +84,7 @@ router.post("/conversion", (req, res) => {
  * GET /api/analytics/seller/:sellerId
  * Get seller metrics for a given time window
  */
-router.get("/seller/:sellerId", async (req, res) => {
+router.get("/seller/:sellerId", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
     const { timeWindow = "week" } = req.query as { timeWindow?: "day" | "week" | "month" };
@@ -126,7 +126,7 @@ router.get("/seller/:sellerId", async (req, res) => {
  * GET /api/analytics/product/:productId
  * Get product-level metrics
  */
-router.get("/product/:productId", async (req, res) => {
+router.get("/product/:productId", async (req: any, res: any) => {
   try {
     const { productId } = req.params;
 
@@ -152,7 +152,7 @@ router.get("/product/:productId", async (req, res) => {
  * GET /api/analytics/seller/:sellerId/forecast
  * Get revenue forecast for next N days
  */
-router.get("/seller/:sellerId/forecast", async (req, res) => {
+router.get("/seller/:sellerId/forecast", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
     const { daysAhead = 7 } = req.query;
@@ -179,7 +179,7 @@ router.get("/seller/:sellerId/forecast", async (req, res) => {
  * GET /api/analytics/seller/:sellerId/cohorts
  * Get cohort analysis for seller
  */
-router.get("/seller/:sellerId/cohorts", async (req, res) => {
+router.get("/seller/:sellerId/cohorts", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
 
@@ -208,7 +208,7 @@ router.get("/seller/:sellerId/cohorts", async (req, res) => {
  * GET /api/analytics/health
  * Health check endpoint
  */
-router.get("/health", (req, res) => {
+router.get("/health", (req: any, res: any) => {
   res.json({
     status: "healthy",
     totalClicksTracked: clickEvents.length,
@@ -221,7 +221,7 @@ router.get("/health", (req, res) => {
  * POST /api/analytics/reset
  * Reset analytics data (for testing)
  */
-router.post("/reset", (req, res) => {
+router.post("/reset", (req: any, res: any) => {
   clickEvents.length = 0;
   conversionEvents.length = 0;
   console.log("[Analytics] Reset all analytics data");

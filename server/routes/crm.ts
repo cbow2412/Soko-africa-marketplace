@@ -27,7 +27,7 @@ const router = express.Router();
  *   }
  * }
  */
-router.post("/leads", async (req: Request, res: Response) => {
+router.post("/leads", async (req: any, res: any) => {
   try {
     const { sellerId, productId, customerId, interactionType, metadata } = req.body;
 
@@ -63,7 +63,7 @@ router.post("/leads", async (req: Request, res: Response) => {
  * 
  * Get all leads for a seller
  */
-router.get("/sellers/:sellerId/leads", async (req: Request, res: Response) => {
+router.get("/sellers/:sellerId/leads", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -86,7 +86,7 @@ router.get("/sellers/:sellerId/leads", async (req: Request, res: Response) => {
  * 
  * Get conversion funnel for a seller
  */
-router.get("/sellers/:sellerId/funnel", async (req: Request, res: Response) => {
+router.get("/sellers/:sellerId/funnel", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
 
@@ -108,7 +108,7 @@ router.get("/sellers/:sellerId/funnel", async (req: Request, res: Response) => {
  * 
  * Export leads as CSV
  */
-router.get("/sellers/:sellerId/export", async (req: Request, res: Response) => {
+router.get("/sellers/:sellerId/export", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
 
@@ -128,7 +128,7 @@ router.get("/sellers/:sellerId/export", async (req: Request, res: Response) => {
  * 
  * Get CRM system statistics
  */
-router.get("/stats", async (req: Request, res: Response) => {
+router.get("/stats", async (req: any, res: any) => {
   try {
     const stats = sellerCRM.getStats();
 
@@ -147,7 +147,7 @@ router.get("/stats", async (req: Request, res: Response) => {
  * 
  * Get Heartbeat Sync Worker status
  */
-router.get("/heartbeat/status", async (req: Request, res: Response) => {
+router.get("/heartbeat/status", async (req: any, res: any) => {
   try {
     const stats = heartbeatSync.getStats();
     const syncStatus = heartbeatSync.getSyncStatus();
@@ -168,7 +168,7 @@ router.get("/heartbeat/status", async (req: Request, res: Response) => {
  * 
  * Manually trigger a sync for a specific seller
  */
-router.post("/heartbeat/sync/:sellerId", async (req: Request, res: Response) => {
+router.post("/heartbeat/sync/:sellerId", async (req: any, res: any) => {
   try {
     const { sellerId } = req.params;
 

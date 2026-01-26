@@ -1,4 +1,4 @@
-import { chromium, Browser, Page } from "playwright";
+import { chromium, Browser } from "playwright";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import pLimit from "p-limit";
@@ -86,7 +86,7 @@ export class WhatsAppScraperV3 {
     console.log(`[Scout] Starting product ID extraction from: ${catalogUrl}`);
     
     const browser = await this.initBrowser();
-    const page = await browser.newPage();
+    const page: any = await browser.newPage();
     const results: ScoutResult[] = [];
 
     try {
@@ -121,7 +121,7 @@ export class WhatsAppScraperV3 {
       console.log(`[Scout] Extracted ${productIds.length} unique product IDs`);
 
       results.push(
-        ...productIds.map((id) => ({
+        ...productIds.map((id: string) => ({
           productId: id,
           sellerPhone,
         }))

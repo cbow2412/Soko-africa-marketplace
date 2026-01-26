@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { drizzle as drizzleMysql } from "drizzle-orm/mysql2";
 import * as mysqlSchema from "../drizzle/schema";
 import { ENV } from './_core/env';
-import { RealSigLIPEmbeddings } from './services/siglip-real';
+// import { RealSigLIPEmbeddings } from './services/siglip-real'; // Removed to prevent synchronous module-level crash
 import { generateNairobiMarketData, WHATSAPP_BUSINESS_NUMBER } from './db-nairobi-data';
 
 // In-memory fallback for the sandbox environment to ensure 100% uptime and seamless continuation
@@ -29,8 +29,9 @@ function initializeProducts() {
 
   console.log(`✅ Loaded ${products.length} enterprise-grade products`);
 
-  // Generate embeddings for visual similarity using RealSigLIPEmbeddings
-  // We do this in batches for 2k products to avoid overloading
+  // Vectorization logic is commented out to prevent serverless function cold-start crash.
+  // This should be moved to a background job or a dedicated service.
+  /*
   (async () => {
     console.log("[Database] Starting batch vectorization for 2,000+ products...");
     const batchSize = 50;
@@ -54,11 +55,12 @@ function initializeProducts() {
     }
     console.log(`✅ Vectorized ${productEmbeddings.size} products for visual discovery`);
   })();
+  */
 
   console.log(`✅ All products linked to WhatsApp: +${WHATSAPP_BUSINESS_NUMBER}`);
 }
 
-initializeProducts();
+
 
 let _db: any = null;
 
@@ -94,19 +96,31 @@ export async function getUserByOpenId(openId: string) {
 }
 
 export async function getProducts(limit: number = 20, offset: number = 0) {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   return products.slice(offset, offset + limit);
 }
 
 export async function getProductById(id: number) {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   return products.find(p => p.id === id);
 }
 
 export async function getProductsByCategory(categoryId: number, limit: number = 20, offset: number = 0) {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   const filtered = products.filter(p => p.categoryId === categoryId);
   return filtered.slice(offset, offset + limit);
 }
 
 export async function searchProducts(query: string, limit: number = 20) {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   const lowerQuery = query.toLowerCase();
   return products
     .filter(p => 
@@ -121,10 +135,16 @@ export async function getCategories() {
 }
 
 export async function getProductEmbedding(productId: number): Promise<number[] | null> {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   return productEmbeddings.get(productId) || null;
 }
 
 export async function getSimilarProducts(productId: number, limit: number = 5) {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   const embedding = productEmbeddings.get(productId);
   if (!embedding) return [];
 
@@ -161,6 +181,9 @@ export async function recordInteraction(userId: string, productId: number, inter
 }
 
 export async function getAnalyticsDashboard(userId: string) {
+  if (products.length === 0) {
+    initializeProducts();
+  }
   return {
     totalViews: Math.floor(Math.random() * 1000),
     totalClicks: Math.floor(Math.random() * 500),

@@ -8,7 +8,7 @@ function isIpAddress(host: string) {
   return host.includes(":");
 }
 
-function isSecureRequest(req: Request) {
+function isSecureRequest(req: any) {
   if (req.protocol === "https") return true;
 
   const forwardedProto = req.headers["x-forwarded-proto"];
@@ -18,7 +18,7 @@ function isSecureRequest(req: Request) {
     ? forwardedProto
     : forwardedProto.split(",");
 
-  return protoList.some(proto => proto.trim().toLowerCase() === "https");
+  return protoList.some((proto: string) => proto.trim().toLowerCase() === "https");
 }
 
 export function getSessionCookieOptions(

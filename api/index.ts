@@ -12,12 +12,8 @@ import { ENV } from "../server/_core/env";
 
 const app = express();
 
-// Initialize Vector Store for AI Visual Discovery
-if (ENV.enableMilvus && ENV.milvusAddress) {
-  initializeVectorStore(ENV.milvusAddress).catch(err => {
-    console.error("[Server] Failed to initialize Milvus:", err);
-  });
-}
+// Vector Store initialization is deferred to prevent serverless cold-start crash.
+// It will be initialized on first use or by a dedicated background job.
 
 // Configure body parser
 app.use(express.json({ limit: "50mb" }));
@@ -35,17 +31,21 @@ app.use("/api/recommendations", recommendationsRouter);
 // CRM API
 app.use("/api/crm", crmRouter);
 
-// tRPC API
-app.use(
-  "/api/trpc",
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  })
-);
+// tRPC API - Handle both /api/trpc and /trpc for compatibility
+const trpcMiddleware = createExpressMiddleware({
+  router: appRouter,
+  createContext,
+});
+
+app.use("/api/trpc", trpcMiddleware);
+app.use("/trpc", trpcMiddleware);
 
 // Health check
 app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 

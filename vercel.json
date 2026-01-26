@@ -1,14 +1,14 @@
 {
   "version": 2,
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "outputDirectory": "dist/public",
   "framework": "vite",
   "env": {
     "NODE_ENV": "production"
   },
-  "regions": ["fra1", "iad1"],
+  "regions": ["iad1"],
   "functions": {
-    "server/index.ts": {
+    "api/index.ts": {
       "memory": 1024,
       "maxDuration": 60
     }

@@ -63,3 +63,5 @@ docker-compose.override.yml
 # Misc
 .cache/
 *.bak
+.vercel
+.env*.local

@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { ENV } from "../_core/env";
-import { generateSigLIPEmbeddings } from "./siglip-real";
+import { RealSigLIPEmbeddings } from "./siglip-real";
 
 export interface ScrapedProduct {
   name: string;
@@ -49,7 +49,7 @@ export class ScoutHydrateService {
       // Vectorize for Visual Discovery
       let vector: number[] | undefined;
       try {
-        vector = await generateSigLIPEmbeddings(imageUrl, name);
+        vector = await RealSigLIPEmbeddings.generateEmbeddings(name, description, imageUrl);
         console.log(`[Vectorize] Generated SigLIP-768 embeddings for ${name}`);
       } catch (err) {
         console.warn(`[Vectorize] Failed to generate embeddings, falling back to text-only: ${err}`);
