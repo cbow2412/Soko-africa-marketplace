@@ -1,0 +1,227 @@
+// Enterprise-Grade Marketplace Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model - Core user account
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String    // Hashed password
+  firstName     String
+  lastName      String
+  phoneNumber   String?
+  profileImage  String?
+  bio           String?
+  
+  // User role: "buyer", "seller", or "admin"
+  role          String    @default("buyer")
+  
+  // Account status
+  isVerified    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  profile       Profile?
+  products      Product[]
+  orders        Order[]
+  watchlist     Watchlist[]
+  comments      Comment[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+// User Profile - Extended user information
+model Profile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Profile details
+  storeName     String?
+  storeDescription String?
+  storeImage    String?
+  
+  // Location
+  city          String?
+  country       String?
+  
+  // Seller metrics
+  totalSales    Int       @default(0)
+  totalRating   Float     @default(0)
+  totalReviews  Int       @default(0)
+  
+  // Preferences
+  notificationsEnabled Boolean @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+// Product Model - Marketplace products
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  price         Float
+  currency      String    @default("KES")
+  
+  // Inventory
+  stock         Int       @default(0)
+  
+  // Media
+  imageUrl      String?
+  imageUrls     String[]  // Array of image URLs
+  
+  // Categorization
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  
+  // Seller
+  sellerId      String
+  seller        User      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  // Product metadata
+  source        String?   // e.g., "nairobi_market", "uploaded"
+  sku           String?   @unique
+  
+  // Ratings and reviews
+  averageRating Float     @default(0)
+  totalReviews  Int       @default(0)
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  orders        OrderItem[]
+  watchlist     Watchlist[]
+  comments      Comment[]
+  
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+// Category Model
+model Category {
+  id            String    @id @default(cuid())
+  name          String    @unique
+  slug          String    @unique
+  description   String?
+  image         String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  products      Product[]
+}
+
+// Order Model
+model Order {
+  id            String    @id @default(cuid())
+  
+  // Customer
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Order details
+  totalAmount   Float
+  currency      String    @default("KES")
+  status        String    @default("pending") // pending, confirmed, shipped, delivered, cancelled
+  
+  // Shipping
+  shippingAddress String?
+  shippingCity  String?
+  shippingPhone String?
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  items         OrderItem[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Order Item Model - Items within an order
+model OrderItem {
+  id            String    @id @default(cuid())
+  
+  orderId       String
+  order         Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  quantity      Int
+  priceAtPurchase Float
+  
+  @@index([orderId])
+  @@index([productId])
+}
+
+// Watchlist Model - User's saved/favorited products
+model Watchlist {
+  id            String    @id @default(cuid())
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+// Comment/Review Model
+model Comment {
+  id            String    @id @default(cuid())
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  productId     String
+  product       Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  rating        Int       // 1-5
+  text          String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([productId])
+}
+
+// Session Model - For authentication
+model Session {
+  id            String    @id @default(cuid())
+  sessionToken  String    @unique
+  userId        String
+  expires       DateTime
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+}
