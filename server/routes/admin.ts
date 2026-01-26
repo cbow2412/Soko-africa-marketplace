@@ -13,7 +13,7 @@ import { getProducts, getCatalogSyncLogs } from "../db";
 export const adminRouter = router({
   getStats: publicProcedure.query(async () => {
     const allProducts = await getProducts(1000, 0);
-    const logs = await getCatalogSyncLogs(10);
+    const logs = [];
     
     return {
       totalProducts: allProducts.length,
@@ -26,7 +26,7 @@ export const adminRouter = router({
       },
       recentLogs: logs,
       systemUptime: process.uptime(),
-      memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024
+      memoryUsage: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
     };
   }),
   
