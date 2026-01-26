@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useStaticProducts } from "@/hooks/useStaticProducts";
 import { Heart, Search, Plus, MessageCircle, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin, Bell, Package } from "lucide-react";
 
 interface Product {
@@ -79,6 +80,7 @@ export default function Home() {
   );
 
   const { data: categories } = trpc.categories.getAll.useQuery();
+  const { products: staticProducts, isLoading: isLoadingStatic } = useStaticProducts();
 
   // Handle infinite scroll
   useEffect(() => {
@@ -102,20 +104,47 @@ export default function Home() {
   useEffect(() => {
     if (productsData && !selectedCategory && !searchQuery) {
       setProducts(prev => (offset === 0 ? productsData : [...prev, ...productsData]));
+    } else if (!isLoadingProducts && !productsData && staticProducts.length > 0 && !selectedCategory && !searchQuery) {
+      // Fallback to static products if tRPC fails or returns nothing
+      const formattedStatic = staticProducts.map(p => ({
+        ...p,
+        price: p.price.toLocaleString(),
+        source: 'nairobi_market'
+      })) as any[];
+      setProducts(prev => (offset === 0 ? formattedStatic.slice(0, 40) : [...prev, ...formattedStatic.slice(offset, offset + 40)]));
     }
-  }, [productsData, offset, selectedCategory, searchQuery]);
+  }, [productsData, staticProducts, isLoadingProducts, offset, selectedCategory, searchQuery]);
 
   useEffect(() => {
     if (categoryProducts && selectedCategory) {
       setProducts(prev => (offset === 0 ? categoryProducts : [...prev, ...categoryProducts]));
+    } else if (!isLoadingCategory && !categoryProducts && staticProducts.length > 0 && selectedCategory) {
+      const filtered = staticProducts.filter(p => p.categoryId === selectedCategory);
+      const formattedStatic = filtered.map(p => ({
+        ...p,
+        price: p.price.toLocaleString(),
+        source: 'nairobi_market'
+      })) as any[];
+      setProducts(prev => (offset === 0 ? formattedStatic.slice(0, 40) : [...prev, ...formattedStatic.slice(offset, offset + 40)]));
     }
-  }, [categoryProducts, offset, selectedCategory]);
+  }, [categoryProducts, staticProducts, isLoadingCategory, offset, selectedCategory]);
 
   useEffect(() => {
     if (searchResults && searchQuery) {
       setProducts(prev => (offset === 0 ? searchResults : [...prev, ...searchResults]));
+    } else if (!isLoadingSearch && !searchResults && staticProducts.length > 0 && searchQuery) {
+      const filtered = staticProducts.filter(p => 
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        p.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      const formattedStatic = filtered.map(p => ({
+        ...p,
+        price: p.price.toLocaleString(),
+        source: 'nairobi_market'
+      })) as any[];
+      setProducts(prev => (offset === 0 ? formattedStatic.slice(0, 40) : [...prev, ...formattedStatic.slice(offset, offset + 40)]));
     }
-  }, [searchResults, offset, searchQuery]);
+  }, [searchResults, staticProducts, isLoadingSearch, offset, searchQuery]);
 
   // Reset pagination when filters change
   useEffect(() => {
