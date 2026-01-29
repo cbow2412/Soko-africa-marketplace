@@ -47,7 +47,7 @@ async function initializePool() {
       connectionLimit: 10,
       queueLimit: 0,
       enableKeepAlive: true,
-      keepAliveInitialDelayMs: 0,
+      keepAliveInitialDelay: 0,
       ssl: url.searchParams.get("sslMode") === "REQUIRED" ? { rejectUnauthorized: false } : undefined,
     });
 
