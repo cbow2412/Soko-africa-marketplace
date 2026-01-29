@@ -1,4 +1,4 @@
-import { MilvusClient } from "@milvus.io/milvus2-sdk-node";
+import { MilvusClient } from "@zilliz/milvus2-sdk-node";
 import { ENV } from "../_core/env";
 
 /**
