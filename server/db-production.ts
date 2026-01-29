@@ -37,7 +37,7 @@ async function initializePool() {
     // Parse MySQL connection string
     const url = new URL(`mysql://${databaseUrl.replace("mysql://", "")}`);
     
-    _pool = await mysql.createPool({
+    _pool = mysql.createPool({
       host: url.hostname,
       port: parseInt(url.port || "3306"),
       user: url.username,
@@ -48,7 +48,7 @@ async function initializePool() {
       queueLimit: 0,
       enableKeepAlive: true,
       keepAliveInitialDelayMs: 0,
-      ssl: url.searchParams.get("sslMode") === "REQUIRED" ? "Amazon RDS" : false,
+      ssl: url.searchParams.get("sslMode") === "REQUIRED" ? { rejectUnauthorized: false } : undefined,
     });
 
     console.log("✅ TiDB Connection Pool Initialized");
@@ -155,7 +155,7 @@ export async function searchProducts(query: string, limit: number = 20) {
     .from(mysqlSchema.products)
     .where(
       // Search in both name and description
-      mysqlSchema.products.name.like(lowerQuery)
+      and(eq(mysqlSchema.products.name, lowerQuery))
     )
     .limit(limit);
 }

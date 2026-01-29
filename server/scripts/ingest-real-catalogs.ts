@@ -75,7 +75,7 @@ async function ingestRealCatalogs() {
 
       // Filter for high-quality images (og:image must be present and valid)
       const qualityProducts = hydratedProducts.filter((p) => {
-        return p.imageUrl && p.imageUrl.includes("http") && p.name && p.description;
+        return p.ogImageUrl && p.ogImageUrl.includes("http") && p.title && p.description;
       });
 
       console.log(`   ✓ ${qualityProducts.length} products passed quality check`);

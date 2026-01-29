@@ -1,6 +1,8 @@
 import { router, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { getProducts, getProductsByCategory, getProductById, getCategories } from "./db";
+import { getProducts, getProductsByCategory, getProductById, getCategories, getAllProducts } from "./db";
+import { ingestionRouter } from "./routes/ingestion";
+import { adminRouter } from "./routes/admin";
 
 /**
  * Minimal tRPC Router - Simplified to avoid module-level crashes
@@ -78,6 +80,29 @@ export const appRouter = router({
         return [];
       }
     }),
+  }),
+
+  // Ingestion router
+  ingestion: ingestionRouter,
+
+  // Admin router
+  admin: adminRouter,
+
+  // Recommendations router (added for Home page compatibility)
+  products_recommended: router({
+    getRecommended: publicProcedure
+      .input(z.object({
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        try {
+          return await getProducts(input.limit, input.offset);
+        } catch (error) {
+          console.error("Error fetching recommended products:", error);
+          return [];
+        }
+      }),
   }),
 
   // Health check

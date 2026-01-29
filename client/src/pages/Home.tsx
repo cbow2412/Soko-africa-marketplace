@@ -63,7 +63,7 @@ export default function Home() {
   }, [favorites]);
 
   // Fetch products (using the new recommendation endpoint for the "All Items" view)
-  const { data: productsData, isLoading: isLoadingProducts } = trpc.products.getRecommended.useQuery(
+  const { data: productsData, isLoading: isLoadingProducts } = trpc.products_recommended.getRecommended.useQuery(
     { limit: 40, offset },
     { enabled: !selectedCategory && !searchQuery }
   );

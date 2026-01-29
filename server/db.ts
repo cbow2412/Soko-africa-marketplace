@@ -7,7 +7,7 @@ import {
   getProductById as getProductByIdInit,
   getProductsByCategory as getProductsByCategoryInit,
   searchProducts as searchProductsInit,
-  getAllProducts
+  getAllProducts as getAllProductsInit
 } from './db-init';
 
 // In-memory fallback for the sandbox environment
@@ -73,6 +73,14 @@ export async function searchProducts(query: string, limit: number = 20) {
 
 export async function getCategories() {
   return categories;
+}
+
+export async function getAllProducts() {
+  return await getAllProductsInit();
+}
+
+export async function getCatalogSyncLogs() {
+  return syncLogs;
 }
 
 export async function getProductEmbedding(productId: number): Promise<number[] | null> {

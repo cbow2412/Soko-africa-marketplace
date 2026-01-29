@@ -10,7 +10,7 @@ export default function Watchlist() {
   const [, setLocation] = useLocation();
   const [products, setProducts] = useState<any[]>([]);
   
-  const { data: recommendedData, isLoading } = trpc.products.getRecommended.useQuery({
+  const { data: recommendedData, isLoading } = trpc.products_recommended.getRecommended.useQuery({
     limit: 20,
     offset: 0
   });
