@@ -1,36 +1,48 @@
+# Use Node 22 Alpine for a lightweight footprint
 FROM node:22-alpine AS builder
 
+# Install pnpm for faster, more reliable builds
+RUN npm install -g pnpm
+
 WORKDIR /app
 
-COPY package*.json ./
+# Copy only dependency files first to leverage Docker cache
+COPY pnpm-lock.yaml package.json ./
 
-RUN npm ci --legacy-peer-deps
+# Install all dependencies (including devDeps for build)
+RUN pnpm install --frozen-lockfile
 
+# Copy the rest of the application
 COPY . .
 
-RUN npm run build
+# Build the application (Vite + Server Build)
+RUN pnpm run build
 
+# Production Stage
 FROM node:22-alpine
+
+RUN npm install -g pnpm && apk add --no-cache dumb-init
 
 WORKDIR /app
 
-RUN apk add --no-cache dumb-init
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-COPY package*.json ./
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile
 
-RUN npm ci --legacy-peer-deps --production
-
+# Copy built assets from builder
 COPY --from=builder /app/dist ./dist
 
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
-USER nodejs
+# Set environment to production
+ENV NODE_ENV=production
+ENV PORT=3000
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
-
+# Expose the port Railway expects
 EXPOSE 3000
 
+# Use dumb-init to handle signals correctly
 ENTRYPOINT ["dumb-init", "--"]
 
+# Start the stabilized production server
 CMD ["node", "dist/server/index.js"]
