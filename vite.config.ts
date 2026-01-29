@@ -24,6 +24,9 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    minify: false, // Faster build, less likely to crash on complex types
+    sourcemap: false,
+    reportCompressedSize: false,
   },
   server: {
     host: true,
