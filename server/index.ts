@@ -11,10 +11,34 @@ import recommendationsRouter from "./routes/recommendations";
 import crmRouter from "./routes/crm";
 import { initializeVectorStore } from "./services/siglip-milvus";
 import { ENV } from "./_core/env";
+import { registerAllProcessors } from "./services/job-processors";
 
 async function startServer() {
-  console.log("🚀 Starting Soko Africa Production Server...");
+  const isWorker = process.argv.includes("--worker");
 
+  if (isWorker) {
+    console.log("👷 Starting Soko Africa BullMQ Worker...");
+    await registerAllProcessors();
+    
+    // Minimal health check server for the worker
+    const app = express();
+    app.get("/health", (_req, res) => {
+      res.status(200).json({ 
+        status: "ok", 
+        mode: "worker", 
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString()
+      });
+    });
+    const port = parseInt(process.env.PORT || "3000");
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`✅ Worker health check running on port ${port}`);
+    });
+    return;
+  }
+
+  console.log("🚀 Starting Soko Africa Production Server...");
+  
   // Initialize Vector Store for AI Visual Discovery
   if (ENV.enableMilvus && ENV.milvusAddress) {
     console.log("🧬 Initializing Milvus Vector Store...");
@@ -35,8 +59,10 @@ async function startServer() {
 
   // Analytics API
   app.use("/api/analytics", analyticsRouter);
+
   // Recommendations API
   app.use("/api/recommendations", recommendationsRouter);
+
   // CRM API
   app.use("/api/crm", crmRouter);
 
@@ -48,13 +74,13 @@ async function startServer() {
   app.use("/api/trpc", trpcMiddleware);
   app.use("/trpc", trpcMiddleware);
 
-  // Health check endpoint for Railway
+  // Health check endpoint
   app.get("/health", (_req, res) => {
     res.status(200).json({ 
       status: "ok", 
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
-      version: "1.0.4-production"
+      version: "1.0.5-industrial"
     });
   });
 

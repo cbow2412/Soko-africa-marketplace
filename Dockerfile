@@ -1,48 +1,66 @@
-# Use Node 22 Alpine for a lightweight footprint
-FROM node:22-alpine AS builder
+_# Stage 1: Dependencies
+FROM node:22-alpine AS deps
+# Install dependencies required for native modules
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
 
-# Install pnpm for faster, more reliable builds
+# Install pnpm globally for easy access
 RUN npm install -g pnpm
 
-WORKDIR /app
-
-# Copy only dependency files first to leverage Docker cache
-COPY pnpm-lock.yaml package.json ./
-
-# Install all dependencies (including devDeps for build)
-RUN pnpm install --frozen-lockfile
-
-# Copy the rest of the application
-COPY . .
-
-# Build the application (Vite + Server Build)
-RUN pnpm run build || true
-
-# Production Stage
-FROM node:22-alpine
-
-RUN npm install -g pnpm && apk add --no-cache dumb-init
-
-WORKDIR /app
-
-# Copy package files
+# Copy only essential package manager files
 COPY package.json pnpm-lock.yaml ./
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Install all dependencies (including devDependencies for the build process)
+RUN pnpm install --frozen-lockfile
 
-# Copy built assets from builder
-COPY --from=builder /app/dist ./dist
+# Stage 2: Builder
+FROM node:22-alpine AS builder
+WORKDIR /app
 
-# Set environment to production
+# Install pnpm globally
+RUN npm install -g pnpm
+
+# Copy dependencies from the previous stage
+COPY --from=deps /app/node_modules ./node_modules
+# Copy the entire application source code
+COPY . .
+
+# Build the application, creating the `dist` directory
+RUN pnpm run build
+
+# Prune development dependencies to reduce image size
+RUN pnpm prune --prod
+
+# Stage 3: Production Runner
+FROM node:22-alpine AS runner
+WORKDIR /app
+
+# Set production environment
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Expose the port Railway expects
+# Create a non-root user for enhanced security
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy only the necessary production assets from the builder stage
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+
+# Set ownership of the application files to the non-root user
+RUN chown -R nextjs:nodejs /app
+
+# Switch to the non-root user
+USER nextjs
+
+# Expose the application port
 EXPOSE 3000
 
-# Use dumb-init to handle signals correctly
-ENTRYPOINT ["dumb-init", "--"]
+# Health check to ensure the application is running correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the stabilized production server
+# Command to start the application server
 CMD ["node", "dist/server/index.js"]
+_

@@ -1,82 +1,112 @@
 version: '3.8'
 
 services:
-  # TiDB MySQL Database
-  tidb:
-    image: mysql:8.0
-    container_name: soko_tidb
+  # Main Application Service (Next.js 15 Standalone-style)
+  soko-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: soko-africa:latest
+    container_name: soko-app
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: soko_dev
-    ports:
-      - "3306:3306"
-    volumes:
-      - tidb_data:/var/lib/mysql
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_HOST=redis-stack
+      - REDIS_PORT=6379
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - HF_TOKEN=${HF_TOKEN}
+      - MILVUS_ADDRESS=milvus:19530
+    depends_on:
+      redis-stack:
+        condition: service_healthy
+      milvus:
+        condition: service_healthy
+    networks:
+      - soko-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.soko-app.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.soko-app.entrypoints=websecure"
+      - "traefik.http.routers.soko-app.tls.certresolver=letsencrypt"
+      # Nairobi Edge Optimization: Stale-While-Revalidate (SWR) headers for Cloudflare
+      - "traefik.http.middlewares.soko-swr.headers.customResponseHeaders.Cache-Control=public, max-age=1, stale-while-revalidate=59"
+      - "traefik.http.routers.soko-app.middlewares=soko-swr"
+
+  # GPU-Enabled BullMQ Worker for SigLIP Inference
+  soko-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: soko-africa:latest
+    container_name: soko-worker
+    restart: always
+    # The application entrypoint should detect this flag to run only the worker
+    command: ["node", "dist/server/index.js", "--worker"]
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis-stack
+      - REDIS_PORT=6379
+      - HF_TOKEN=${HF_TOKEN}
+      - USE_GPU=true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      # Self-Healing Strategy: Restart if the worker or SigLIP model fails
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      redis-stack:
+        condition: service_healthy
+    networks:
+      - soko-network
+
+  # Redis Stack for Task Queue, Persistence, and Rate-Limiting
+  redis-stack:
+    image: redis/redis-stack:latest
+    container_name: soko-redis
+    restart: always
+    environment:
+      - REDIS_ARGS=--requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - soko-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Milvus Vector Database
+  # Milvus Vector Database for Visual Similarity Search
   milvus:
     image: milvusdb/milvus:latest
-    container_name: soko_milvus
+    container_name: soko-milvus
     environment:
       COMMON_STORAGETYPE: local
-    ports:
-      - "19530:19530"
-      - "9091:9091"
     volumes:
       - milvus_data:/var/lib/milvus
+    networks:
+      - soko-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
       interval: 30s
       timeout: 10s
       retries: 5
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: soko_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Application
-  app:
-    build: .
-    container_name: soko_app
-    depends_on:
-      tidb:
-        condition: service_healthy
-      milvus:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      NODE_ENV: development
-      PORT: 3000
-      DATABASE_URL: mysql://root:root@tidb:3306/soko_dev?sslMode=REQUIRED
-      MILVUS_ADDRESS: milvus:19530
-      MILVUS_USERNAME: minioadmin
-      MILVUS_PASSWORD: minioadmin
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm run dev
+networks:
+  soko-network:
+    driver: bridge
 
 volumes:
-  tidb_data:
-  milvus_data:
   redis_data:
+  milvus_data:
