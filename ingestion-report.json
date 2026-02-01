@@ -1,0 +1,29 @@
+{
+  "totalLinks": 100,
+  "successCount": 0,
+  "failedCount": 100,
+  "deadLinks": 100,
+  "rateLimited": 0,
+  "averageTimePerBatch": 5690.5,
+  "batches": [
+    {
+      "batchNumber": 1,
+      "urlCount": 50,
+      "successCount": 0,
+      "failedCount": 50,
+      "duration": 6974,
+      "timestamp": "2026-02-01T21:47:45.442Z"
+    },
+    {
+      "batchNumber": 2,
+      "urlCount": 50,
+      "successCount": 0,
+      "failedCount": 50,
+      "duration": 4407,
+      "timestamp": "2026-02-01T21:47:49.849Z"
+    }
+  ],
+  "startTime": "2026-02-01T21:47:38.463Z",
+  "endTime": "2026-02-01T21:47:49.849Z",
+  "duration": 11381
+}

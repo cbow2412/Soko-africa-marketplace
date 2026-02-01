@@ -40,10 +40,7 @@ class RedisService {
       } = config;
 
       this.client = createClient({
-        host,
-        port,
-        password,
-        db,
+        url: `redis://${password ? `:${password}@` : ""}${host}:${port}/${db}`,
         socket: {
           connectTimeout: timeout,
         },
