@@ -1,14 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { Sparkles, Heart, ShoppingBag, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { Sparkles, Heart, ArrowLeft } from "lucide-react";
+import { Masonry } from "react-plock";
+import { ProductCard } from "@/components/ProductCard";
+import { SkeletonLoader } from "@/components/SkeletonLoader";
+
+const PREDEFINED_HEIGHTS = [280, 320, 350, 400, 450, 300, 380, 420];
+const getCardHeight = (productId: number) => PREDEFINED_HEIGHTS[productId % PREDEFINED_HEIGHTS.length];
 
 export default function Watchlist() {
   const [, setLocation] = useLocation();
   const [products, setProducts] = useState<any[]>([]);
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
   
   const { data: recommendedData, isLoading } = trpc.products_recommended.getRecommended.useQuery({
     limit: 20,
@@ -16,73 +20,76 @@ export default function Watchlist() {
   });
 
   useEffect(() => {
+    const savedFavorites = localStorage.getItem('soko_watchlist');
+    if (savedFavorites) {
+      try {
+        const favoriteIds = JSON.parse(savedFavorites);
+        setFavorites(new Set(favoriteIds));
+      } catch (e) {
+        console.error('Failed to load watchlist:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (recommendedData) {
       setProducts(recommendedData);
     }
   }, [recommendedData]);
 
+  const toggleFavorite = (productId: number) => {
+    setFavorites(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) newSet.delete(productId);
+      else newSet.add(productId);
+      localStorage.setItem('soko_watchlist', JSON.stringify(Array.from(newSet)));
+      return newSet;
+    });
+  };
+
+  const skeletonHeights = useMemo(() => Array.from({ length: 8 }).map((_, i) => PREDEFINED_HEIGHTS[i % PREDEFINED_HEIGHTS.length]), []);
+
   return (
     <div className="min-h-screen bg-black text-white pb-24">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-white/10 px-4 py-4 flex items-center gap-4">
-        <button onClick={() => setLocation("/")} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-          <ArrowLeft size={20} />
+      <div className="sticky top-0 z-40 bg-black/95 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center gap-4">
+        <button onClick={() => setLocation("/")} className="p-2.5 hover:bg-white/5 rounded-xl transition-colors border border-white/5">
+          <ArrowLeft size={20} className="text-slate-400" />
         </button>
         <div>
-          <h1 className="text-xl font-black uppercase tracking-tighter flex items-center gap-2">
-            Your Watchlist <Sparkles className="text-amber-500 w-5 h-5" />
+          <h1 className="text-xl font-black uppercase tracking-tighter flex items-center gap-2 text-white">
+            Watchlist <Sparkles className="text-[#D4AF37] w-5 h-5" />
           </h1>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">AI-Curated for your style</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AI-Curated Luxe Selection</p>
         </div>
       </div>
 
-      <div className="p-4">
+      <div className="px-4 py-6">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <div className="w-8 h-8 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
-            <div className="text-zinc-500 text-xs font-black tracking-widest uppercase">Curating your feed...</div>
-          </div>
+          <SkeletonLoader heights={skeletonHeights} />
         ) : products.length > 0 ? (
-          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {products.map((product) => (
-              <Card 
-                key={product.id}
-                className="break-inside-avoid bg-zinc-900 border-zinc-800 overflow-hidden group cursor-pointer hover:border-amber-500/50 transition-all"
-                onClick={() => setLocation(`/product/${product.id}`)}
-              >
-                <div className="relative aspect-[3/4]">
-                  <img 
-                    src={product.imageUrl} 
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                    <Button 
-                      size="sm" 
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-black font-black uppercase text-[10px] tracking-widest h-8"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.success("Added to cart!");
-                      }}
-                    >
-                      <ShoppingBag size={14} className="mr-1" /> Buy Now
-                    </Button>
-                  </div>
-                  <button className="absolute top-2 right-2 p-2 bg-black/50 backdrop-blur-md rounded-full text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Heart size={16} fill="currentColor" />
-                  </button>
-                </div>
-                <div className="p-3">
-                  <h3 className="text-xs font-bold truncate text-zinc-200">{product.name}</h3>
-                  <p className="text-amber-500 font-black text-sm mt-1">{product.price}</p>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <Masonry
+            items={products}
+            config={{
+              columns: [2, 3, 4, 5, 6],
+              gap: [16, 16, 16, 16, 16],
+              media: [640, 768, 1024, 1280, 1536],
+            }}
+            render={(product, index) => (
+              <ProductCard
+                key={`${product.id}-${index}`}
+                product={product}
+                height={getCardHeight(product.id)}
+                isFavorited={favorites.has(product.id)}
+                onToggleFavorite={toggleFavorite}
+                index={index % 20}
+              />
+            )}
+          />
         ) : (
-          <div className="text-center py-20">
-            <Heart className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
-            <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm">No items in your watchlist yet</p>
+          <div className="flex flex-col items-center justify-center py-32 opacity-30">
+            <Heart className="w-16 h-16 text-slate-500 mb-6" />
+            <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Your collection is empty</p>
           </div>
         )}
       </div>
