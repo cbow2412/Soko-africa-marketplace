@@ -19,8 +19,15 @@ COPY . .
 RUN pnpm run build
 
 # Compile the worker with correct TSC syntax
-# We use --outDir and --rootDir to control the output structure
-RUN npx tsc server/workers/heartbeat-sync-v2.ts --outDir dist --rootDir . --module commonjs --target ES2020 --esModuleInterop true --skipLibCheck true --moduleResolution node
+# We use --outDir and --rootDir to ensure the file lands at dist/server/workers/heartbeat-sync-v2.js
+RUN npx tsc server/workers/heartbeat-sync-v2.ts \
+    --outDir dist \
+    --rootDir . \
+    --module commonjs \
+    --target ES2020 \
+    --esModuleInterop \
+    --skipLibCheck \
+    --moduleResolution node
 
 # Rename to .cjs for ESM compatibility
 RUN mv dist/server/workers/heartbeat-sync-v2.js dist/server/workers/heartbeat-sync-v2.cjs
