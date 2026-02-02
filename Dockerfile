@@ -15,10 +15,18 @@ RUN pnpm install --frozen-lockfile
 # Copy the rest of the application
 COPY . .
 
-# Build the application (Vite + Server Build + Worker)
+# Build the application (Vite + Server Build)
 RUN pnpm run build
-# Explicitly verify and ensure the worker .cjs exists
-RUN ls -la dist/server/workers/heartbeat-sync-v2.cjs
+
+# Compile the worker with correct TSC syntax
+# We use --outDir and --rootDir to control the output structure
+RUN npx tsc server/workers/heartbeat-sync-v2.ts --outDir dist --rootDir . --module commonjs --target ES2020 --esModuleInterop true --skipLibCheck true --moduleResolution node
+
+# Rename to .cjs for ESM compatibility
+RUN mv dist/server/workers/heartbeat-sync-v2.js dist/server/workers/heartbeat-sync-v2.cjs
+
+# MANDATORY VERIFICATION: Build will fail here if worker is missing
+RUN test -f dist/server/workers/heartbeat-sync-v2.cjs && echo "✅ Worker verified at dist/server/workers/heartbeat-sync-v2.cjs"
 
 # Production Stage
 FROM node:22-alpine

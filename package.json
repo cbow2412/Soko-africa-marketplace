@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
     "build": "vite build && tsx server/build.ts && pnpm run build:worker",
-    "build:worker": "tsc -p tsconfig.worker.json && cp ./dist/server/workers/heartbeat-sync-v2.js ./dist/server/workers/heartbeat-sync-v2.cjs",
+    "build:worker": "npx tsc server/workers/heartbeat-sync-v2.ts --outDir dist --rootDir . --module commonjs --target ES2020 --esModuleInterop true --skipLibCheck true --moduleResolution node && mv dist/server/workers/heartbeat-sync-v2.js dist/server/workers/heartbeat-sync-v2.cjs",
     "start": "NODE_ENV=production node dist/server/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
