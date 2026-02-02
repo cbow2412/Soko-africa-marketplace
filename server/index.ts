@@ -58,6 +58,15 @@ async function startServer() {
     });
   });
 
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ 
+      status: "ok", 
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      version: "1.0.4-production"
+    });
+  });
+
   // Serve static files in production
   console.log("📦 Serving static files from dist/public...");
   serveStatic(app);

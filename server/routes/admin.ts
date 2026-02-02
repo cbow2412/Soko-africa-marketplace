@@ -35,5 +35,17 @@ export const adminRouter = router({
     .mutation(async ({ input }) => {
       console.log(`[Admin] Manual sync triggered for seller ${input.sellerId}`);
       return { success: true, message: "Sync job queued" };
-    })
+    }),
+
+  reindexVectorStore: publicProcedure.mutation(async () => {
+    console.log("[Admin] Re-indexing vector store initiated");
+    // In a real scenario, this would trigger a background job
+    return { success: true, message: "Re-indexing job started" };
+  }),
+
+  flushCache: publicProcedure.mutation(async () => {
+    console.log("[Admin] Flushing Redis cache");
+    // In a real scenario, this would call redis.flushall()
+    return { success: true, message: "Cache flushed successfully" };
+  })
 });

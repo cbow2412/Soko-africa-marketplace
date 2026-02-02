@@ -43,6 +43,16 @@ const AdminControl = () => {
     setUrl("");
   };
 
+  const reindexMutation = trpc.admin.reindexVectorStore.useMutation({
+    onSuccess: (data) => addLog(`[Success] ${data.message}`),
+    onError: (error) => addLog(`[Error] Re-index failed: ${error.message}`)
+  });
+
+  const flushMutation = trpc.admin.flushCache.useMutation({
+    onSuccess: (data) => addLog(`[Success] ${data.message}`),
+    onError: (error) => addLog(`[Error] Flush failed: ${error.message}`)
+  });
+
   return (
     <div className="min-h-screen bg-black text-green-500 font-mono p-8">
       {/* Header */}
@@ -188,12 +198,20 @@ const AdminControl = () => {
               <h2 className="text-lg font-bold uppercase tracking-wider">Quick Actions</h2>
             </div>
             <div className="grid grid-cols-1 gap-3">
-              <button className="w-full bg-green-900/10 border border-green-900 p-3 rounded text-left text-xs hover:bg-green-900/20 transition-colors flex items-center justify-between">
-                <span>RE-INDEX VECTOR STORE</span>
+              <button 
+                onClick={() => reindexMutation.mutate()}
+                disabled={reindexMutation.isLoading}
+                className="w-full bg-green-900/10 border border-green-900 p-3 rounded text-left text-xs hover:bg-green-900/20 transition-colors flex items-center justify-between disabled:opacity-50"
+              >
+                <span>{reindexMutation.isLoading ? "RE-INDEXING..." : "RE-INDEX VECTOR STORE"}</span>
                 <Zap className="w-3 h-3" />
               </button>
-              <button className="w-full bg-green-900/10 border border-green-900 p-3 rounded text-left text-xs hover:bg-green-900/20 transition-colors flex items-center justify-between">
-                <span>FLUSH CACHE (REDIS)</span>
+              <button 
+                onClick={() => flushMutation.mutate()}
+                disabled={flushMutation.isLoading}
+                className="w-full bg-green-900/10 border border-green-900 p-3 rounded text-left text-xs hover:bg-green-900/20 transition-colors flex items-center justify-between disabled:opacity-50"
+              >
+                <span>{flushMutation.isLoading ? "FLUSHING..." : "FLUSH CACHE (REDIS)"}</span>
                 <Database className="w-3 h-3" />
               </button>
               <button className="w-full bg-red-900/10 border border-red-900 p-3 rounded text-left text-xs text-red-500 hover:bg-red-900/20 transition-colors flex items-center justify-between">

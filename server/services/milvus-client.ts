@@ -100,7 +100,7 @@ class MilvusVectorDB {
             description: "Product embedding vector",
             data_type: 101, // DataType.FloatVector
             type_params: {
-              dim: 768, // SigLIP embedding dimension
+              dim: "768", // SigLIP embedding dimension
             },
           },
           {
@@ -108,7 +108,7 @@ class MilvusVectorDB {
             description: "Product name",
             data_type: 21, // DataType.VarChar
             type_params: {
-              max_length: 256,
+              max_length: "256",
             },
           },
           {
@@ -116,7 +116,7 @@ class MilvusVectorDB {
             description: "Product category",
             data_type: 21, // DataType.VarChar
             type_params: {
-              max_length: 64,
+              max_length: "64",
             },
           },
           {
