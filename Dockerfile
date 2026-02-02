@@ -1,48 +1,62 @@
-# Use Node 22 Alpine for a lightweight footprint
-FROM node:22-alpine AS builder
+# syntax=docker/dockerfile:1
+FROM node:20-alpine AS base
 
-# Install pnpm for faster, more reliable builds
-RUN npm install -g pnpm
-
-WORKDIR /app
-
-# Copy only dependency files first to leverage Docker cache
-COPY pnpm-lock.yaml package.json ./
-
-# Install all dependencies (including devDeps for build)
-RUN pnpm install --frozen-lockfile
-
-# Copy the rest of the application
-COPY . .
-
-# Build the application (Vite + Server Build)
-RUN pnpm run build || true
-
-# Production Stage
-FROM node:22-alpine
-
-RUN npm install -g pnpm && apk add --no-cache dumb-init
-
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
+COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
 
-# Install only production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Install based on lockfile present
+RUN if [ -f pnpm-lock.yaml ]; then \
+      npm install -g pnpm && pnpm install --frozen-lockfile; \
+    elif [ -f yarn.lock ]; then \
+      yarn --frozen-lockfile; \
+    elif [ -f package-lock.json ]; then \
+      npm ci; \
+    else \
+      npm install; \
+    fi
 
-# Copy built assets from builder
-COPY --from=builder /app/dist ./dist
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-# Set environment to production
-ENV NODE_ENV=production
-ENV PORT=3000
+# Next.js collects anonymous telemetry data - disable
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Expose the port Railway expects
+RUN if [ -f pnpm-lock.yaml ]; then \
+      npm install -g pnpm && pnpm run build; \
+    elif [ -f yarn.lock ]; then \
+      yarn build; \
+    else \
+      npm run build; \
+    fi
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy built assets
+COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+USER nextjs
+
 EXPOSE 3000
 
-# Use dumb-init to handle signals correctly
-ENTRYPOINT ["dumb-init", "--"]
-
-# Start the stabilized production server
 CMD ["node", "dist/server/index.js"]
