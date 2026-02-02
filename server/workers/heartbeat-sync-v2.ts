@@ -3,6 +3,8 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import pLimit from 'p-limit';
 import { db } from '../db';
+import { productsUpdated as products } from '../../drizzle/schema';
+import { eq } from 'drizzle-orm';
 
 /**
  * Heartbeat Sync 2.0: Self-Healing Catalog Integrity Worker
@@ -199,8 +201,7 @@ class HeartbeatSyncV2 {
   private async purgeProduct(productId: string, syncLog: CatalogSyncLog): Promise<void> {
     try {
       // Delete from products table
-      // In a real implementation, this would be:
-      // await db.delete(products).where(eq(products.id, productId));
+      await db.delete(products).where(eq(products.id, parseInt(productId)));
       
       syncLog.productsPurged++;
       console.log(`🫀 [Heartbeat] Purged dead product: ${productId}`);
@@ -219,8 +220,7 @@ class HeartbeatSyncV2 {
   ): Promise<void> {
     try {
       // Update the products table
-      // In a real implementation, this would be:
-      // await db.update(products).set({ price: newPrice }).where(eq(products.id, productId));
+      await db.update(products).set({ priceKes: newPrice }).where(eq(products.id, parseInt(productId)));
       
       syncLog.pricesUpdated++;
       console.log(`🫀 [Heartbeat] Updated price for product ${productId}: ${newPrice}`);

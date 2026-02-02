@@ -21,7 +21,7 @@ let categories: any[] = [
   { id: 7, name: "Jewelry", description: "Luxury jewelry" },
 ];
 
-let _db: any = null;
+export let _db: any = null;
 
 export async function getDb() {
   if (_db) return _db;
