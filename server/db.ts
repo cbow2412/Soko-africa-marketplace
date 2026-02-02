@@ -38,6 +38,16 @@ export async function getDb() {
   return null;
 }
 
+// Export a proxy for the db to handle initialization
+export const db = new Proxy({} as any, {
+  get(target, prop) {
+    if (!_db) {
+      throw new Error("Database not initialized. Call getDb() first.");
+    }
+    return _db[prop];
+  }
+});
+
 export async function upsertUser(user: any): Promise<void> {
   const db = await getDb();
   if (db) {

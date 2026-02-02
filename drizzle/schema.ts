@@ -247,3 +247,61 @@ export const sellerNotificationsRelations = relations(sellerNotifications, ({ on
 export const catalogSyncLogsRelations = relations(catalogSyncLogs, ({ one }) => ({
   seller: one(sellers, { fields: [catalogSyncLogs.sellerId], references: [sellers.id] }),
 }));
+
+// New tables for Neural Engine v2.0
+export const ingestionFailures = mysqlTable("ingestion_failures", {
+  id: int("id").autoincrement().primaryKey(),
+  uuid: varchar("uuid", { length: 64 }).notNull().unique(),
+  sourceUrl: text("sourceUrl").notNull(),
+  vendorId: int("vendorId").notNull(),
+  errorCategory: varchar("errorCategory", { length: 50 }).notNull(),
+  errorMessage: text("errorMessage").notNull(),
+  errorStack: text("errorStack"), // JSON stringified
+  workerNode: varchar("workerNode", { length: 100 }),
+  retryAttempts: int("retryAttempts").default(0),
+  permanentFailure: boolean("permanentFailure").default(false),
+  originalPayload: text("originalPayload"), // JSON stringified
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const productEvents = mysqlTable("product_events", {
+  id: int("id").autoincrement().primaryKey(),
+  uuid: varchar("uuid", { length: 64 }).notNull().unique(),
+  productId: int("productId").notNull(),
+  productUuid: varchar("productUuid", { length: 64 }).notNull(),
+  eventType: varchar("eventType", { length: 50 }).notNull(),
+  eventData: text("eventData"), // JSON stringified
+  actor: varchar("actor", { length: 100 }).notNull(),
+  correlationId: varchar("correlationId", { length: 64 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const vendors = mysqlTable("vendors", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  status: mysqlEnum("status", ["active", "inactive", "pending"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+// Update products table with new fields required by Saga
+export const productsUpdated = mysqlTable("products_v2", {
+  id: int("id").autoincrement().primaryKey(),
+  uuid: varchar("uuid", { length: 64 }).notNull().unique(),
+  vendorId: int("vendorId").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  priceKes: varchar("priceKes", { length: 20 }).notNull(),
+  sourceUrl: text("sourceUrl"),
+  imageUrl: text("imageUrl"),
+  imageHash: varchar("imageHash", { length: 64 }).notNull().unique(),
+  vectorId: varchar("vectorId", { length: 64 }),
+  vectorStatus: mysqlEnum("vectorStatus", ["pending", "ready", "failed"]).default("pending"),
+  status: mysqlEnum("status", ["active", "inactive", "failed_vectorization"]).default("active"),
+  ingestionCompletedAt: timestamp("ingestionCompletedAt"),
+  ingestionDurationMs: int("ingestionDurationMs"),
+  aiTags: text("aiTags"), // JSON stringified array
+  lastError: text("lastError"), // JSON stringified
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
