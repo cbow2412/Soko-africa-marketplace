@@ -12,12 +12,24 @@ import crmRouter from "./routes/crm";
 import { initializeVectorStore } from "./services/siglip-milvus";
 import { ENV } from "./_core/env";
 import { registerAllProcessors } from "./services/job-processors";
+import { redisService } from "./services/redis-client";
+import { jobQueueService } from "./services/job-queue";
 
 async function startServer() {
   const isWorker = process.argv.includes("--worker");
 
+  // Always initialize Redis first as it's required for both App and Worker
+  console.log("🔌 Connecting to Redis...");
+  await redisService.connect().catch(err => {
+    console.error("❌ Failed to connect to Redis:", err);
+    process.exit(1);
+  });
+
   if (isWorker) {
     console.log("👷 Starting Soko Africa BullMQ Worker...");
+    
+    // Initialize JobQueue before registering processors
+    await jobQueueService.initialize();
     await registerAllProcessors();
     
     // Minimal health check server for the worker
@@ -39,6 +51,11 @@ async function startServer() {
 
   console.log("🚀 Starting Soko Africa Production Server...");
   
+  // Initialize JobQueue for the app (to add jobs)
+  await jobQueueService.initialize().catch(err => {
+    console.error("⚠️ JobQueue initialization failed:", err);
+  });
+
   // Initialize Vector Store for AI Visual Discovery
   if (ENV.enableMilvus && ENV.milvusAddress) {
     console.log("🧬 Initializing Milvus Vector Store...");
