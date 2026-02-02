@@ -19,17 +19,10 @@ COPY . .
 RUN pnpm run build
 
 # Compile the worker with correct TSC syntax
-# We use --outDir and --rootDir to ensure the file lands at dist/server/workers/heartbeat-sync-v2.js
-RUN npx tsc server/workers/heartbeat-sync-v2.ts \
-    --outDir dist \
-    --rootDir . \
-    --module commonjs \
-    --target ES2020 \
-    --esModuleInterop \
-    --skipLibCheck \
-    --moduleResolution node
+# We use --outDir dist and --rootDir . to ensure the file lands at dist/server/workers/heartbeat-sync-v2.js
+RUN npx tsc server/workers/heartbeat-sync-v2.ts --outDir dist --rootDir . --module commonjs --target ES2020 --esModuleInterop --skipLibCheck --moduleResolution node
 
-# Rename to .cjs for ESM compatibility
+# Rename to .cjs for ESM compatibility and to avoid path ambiguity
 RUN mv dist/server/workers/heartbeat-sync-v2.js dist/server/workers/heartbeat-sync-v2.cjs
 
 # MANDATORY VERIFICATION: Build will fail here if worker is missing
