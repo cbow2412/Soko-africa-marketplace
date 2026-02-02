@@ -16,7 +16,9 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build the application (Vite + Server Build + Worker)
-RUN pnpm run build && ls -R dist/server/workers/
+RUN pnpm run build
+# Explicitly verify and ensure the worker .cjs exists
+RUN ls -la dist/server/workers/heartbeat-sync-v2.cjs
 
 # Production Stage
 FROM node:22-alpine
