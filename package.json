@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
     "build": "vite build && tsx server/build.ts && pnpm run build:worker",
-    "build:worker": "tsc -p tsconfig.worker.json && find dist -name heartbeat-sync-v2.js -exec sh -c 'mv \"$1\" \"${1%.js}.cjs\"' _ {} \\;",
+    "build:worker": "tsc -p tsconfig.worker.json && cp dist/server/workers/heartbeat-sync-v2.js dist/server/workers/heartbeat-sync-v2.cjs",
     "start": "NODE_ENV=production node dist/server/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",

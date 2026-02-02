@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Build the application (Vite + Server Build + Worker)
-RUN pnpm run build
+RUN pnpm run build && ls -R dist/server/workers/
 
 # Production Stage
 FROM node:22-alpine

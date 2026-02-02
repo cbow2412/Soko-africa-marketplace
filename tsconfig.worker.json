@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
     "module": "CommonJS",
@@ -7,9 +6,18 @@
     "moduleResolution": "node",
     "outDir": "dist",
     "rootDir": ".",
-    "allowImportingTsExtensions": false,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
   },
-  "include": ["server/workers/heartbeat-sync-v2.ts", "server/db.ts", "server/_core/env.ts", "drizzle/schema.ts"]
+  "include": [
+    "server/workers/heartbeat-sync-v2.ts",
+    "server/db.ts",
+    "server/_core/env.ts",
+    "drizzle/schema.ts"
+  ]
 }
