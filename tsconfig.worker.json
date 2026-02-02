@@ -2,11 +2,13 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
-    "module": "ES2020",
+    "module": "CommonJS",
     "target": "ES2020",
     "moduleResolution": "node",
     "outDir": "dist",
+    "rootDir": ".",
     "allowImportingTsExtensions": false,
+    "esModuleInterop": true,
     "skipLibCheck": true
   },
   "include": ["server/workers/heartbeat-sync-v2.ts", "server/db.ts", "server/_core/env.ts", "drizzle/schema.ts"]
