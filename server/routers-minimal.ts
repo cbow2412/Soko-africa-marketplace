@@ -68,6 +68,35 @@ export const appRouter = router({
           return [];
         }
       }),
+
+    /**
+     * Visual Similarity Search - AI-Powered Discovery
+     * Returns products mathematically closest to the clicked product using SigLIP embeddings
+     */
+    getSimilar: publicProcedure
+      .input(z.object({
+        productId: z.number(),
+        limit: z.number().default(12),
+        threshold: z.number().default(0.5),
+      }))
+      .query(async ({ input }) => {
+        try {
+          // Import similarity search from services
+          const { getVisualSimilarity } = await import("../db");
+          const similarProducts = await getVisualSimilarity(input.productId, input.limit);
+          return similarProducts || [];
+        } catch (error) {
+          console.error("Error fetching similar products:", error);
+          // Fallback: return random products from same category
+          const product = await getProductById(input.productId);
+          if (product) {
+            const allProducts = await getProducts(1000, 0);
+            const categoryProducts = allProducts.filter(p => p.categoryId === product.categoryId && p.id !== input.productId);
+            return categoryProducts.slice(0, input.limit);
+          }
+          return [];
+        }
+      }),
   }),
 
   // Categories router
@@ -101,6 +130,29 @@ export const appRouter = router({
         } catch (error) {
           console.error("Error fetching recommended products:", error);
           return [];
+        }
+      }),
+  }),
+
+  // Visual Discovery router
+  discovery: router({
+    /**
+     * Get the next product in the discovery chain
+     * Uses vector similarity to find the closest match
+     */
+    getNext: publicProcedure
+      .input(z.object({
+        currentProductId: z.number(),
+        userTasteVector: z.array(z.number()).optional(),
+      }))
+      .query(async ({ input }) => {
+        try {
+          const { getVisualSimilarity } = await import("../db");
+          const nextProducts = await getVisualSimilarity(input.currentProductId, 1);
+          return nextProducts?.[0] || null;
+        } catch (error) {
+          console.error("Error getting next product:", error);
+          return null;
         }
       }),
   }),

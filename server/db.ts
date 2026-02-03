@@ -163,6 +163,27 @@ export async function getSyncStatus(sellerId: number) {
 }
 
 export async function getVisualSimilarity(productId: number, limit: number = 10) {
+  const currentProduct = await getProductById(productId);
+  if (!currentProduct) return [];
+
+  const currentEmbedding = productEmbeddings.get(productId);
+  if (!currentEmbedding || currentEmbedding.length === 0) {
+    const allProducts = await getAllProducts();
+    return allProducts
+      .filter(p => p.categoryId === currentProduct.categoryId && p.id !== productId)
+      .slice(0, limit);
+  }
+
   const allProducts = await getAllProducts();
-  return allProducts.filter(p => p.id !== productId).slice(0, limit);
+  const similarities = allProducts
+    .filter(p => p.id !== productId)
+    .map(p => {
+      const pEmbedding = productEmbeddings.get(p.id) || [];
+      const similarity = cosineSimilarity(currentEmbedding, pEmbedding);
+      return { product: p, similarity };
+    })
+    .sort((a, b) => b.similarity - a.similarity)
+    .slice(0, limit);
+
+  return similarities.map(s => s.product);
 }

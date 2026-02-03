@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, ArrowLeft, Share2, MessageCircle, Sparkles, ShieldCheck, Zap, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import PremiumLayout from "@/components/layouts/PremiumLayout";
 import ProductCard from "@/components/ProductCard";
+import VisualDiscoveryChain from "@/components/VisualDiscoveryChain";
 import { toast } from "react-hot-toast";
 
 export default function ProductDetail() {
