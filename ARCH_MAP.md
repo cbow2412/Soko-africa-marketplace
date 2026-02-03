@@ -18,14 +18,20 @@ This document provides a deep dive into the file-level logic and data flow of th
 *   **`siglip-real.ts`**: The **Vectorization Engine**.
     *   *Logic:* Implements SigLIP (0.6 Image / 0.4 Text) hybrid embeddings.
     *   *Zero-Copy:* Detects Meta CDN links and processes them in-memory without local storage.
-    *   *Fallback:* Uses a local feature extraction if the Hugging Face API is unavailable.
+*   **`siglip-milvus.ts`**: The **Vector Storage Abstraction**.
+    *   *Logic:* Handles the insertion of hybrid vectors into Milvus (or in-memory fallback) and manages similarity search.
 
-### 3. API Layer (`/server/routers-minimal.ts`)
+### 3. Background Sync & Ingestion (`/server/workers`)
+*   **`heartbeat-sync.ts`**: The **Jumia-Killer Engine**.
+    *   *Logic:* A background worker that runs every 6 hours (or on manual trigger). It scouts WhatsApp catalogs, hydrates products, and updates the vector store in real-time.
+    *   *Scraping:* Uses `WhatsAppScraperV3` to extract product data from Meta CDN links.
+
+### 4. API Layer (`/server/routers-minimal.ts`)
 *   **`products`**: Handles all product retrieval and search.
 *   **`admin`**: Handles the ingestion trigger and sync statistics.
 *   **`health`**: Crucial endpoint for deployment verification.
 
-### 4. Frontend Layer (`/client/src`)
+### 5. Frontend Layer (`/client/src`)
 *   **`pages/Home.tsx`**: The **Discovery Hub**.
     *   *UI:* Pinterest-style masonry grid.
     *   *Logic:* Uses tRPC to fetch real-time data from the backend.
@@ -38,9 +44,9 @@ This document provides a deep dive into the file-level logic and data flow of th
 ## 🔄 Data Flow: The "Jumia-Killer" Loop
 
 1.  **Ingestion:** Business pastes WhatsApp Catalog Link in `SellerOnboarding.tsx`.
-2.  **Scraping:** Backend worker identifies the Meta CDN links.
+2.  **Scraping:** `heartbeat-sync.ts` triggers the `WhatsAppScraperV3`.
 3.  **Vectorization:** `siglip-real.ts` generates a 768-dimension taste vector for each item.
-4.  **Indexing:** Vectors are stored in Milvus; product metadata is hot-swapped into `db-real-data.ts`.
+4.  **Indexing:** Vectors are stored in Milvus via `siglip-milvus.ts`.
 5.  **Discovery:** `Home.tsx` queries the vector-powered feed, presenting the items to the Kenyan market.
 
 ---
