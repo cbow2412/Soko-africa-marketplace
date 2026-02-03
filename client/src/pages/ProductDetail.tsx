@@ -20,10 +20,10 @@ export default function ProductDetail() {
     id: productId,
   });
 
-  // Fetch similar products
-  const { data: similarProducts } = trpc.products.search.useQuery(
-    { query: product?.name || "", limit: 8 },
-    { enabled: !!product }
+  // Fetch similar products using visual similarity (AI-powered)
+  const { data: similarProducts } = trpc.products.getSimilar.useQuery(
+    { productId: productId, limit: 8 },
+    { enabled: !!productId && productId > 0 }
   );
 
   // Fetch categories for display
@@ -293,40 +293,14 @@ export default function ProductDetail() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="space-y-6"
             >
-              {/* Similar Products */}
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-amber-500 mb-4 flex items-center gap-2">
-                  <Sparkles size={16} /> Similar Finds
-                </h3>
-                <div className="space-y-4">
-                  {similarProducts
-                    ?.filter((p) => p.id !== product.id)
-                    .slice(0, 3)
-                    .map((p) => (
-                      <motion.div
-                        key={p.id}
-                        whileHover={{ scale: 1.05 }}
-                        onClick={() => navigate(`/product/${p.id}`)}
-                        className="group cursor-pointer"
-                      >
-                        <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-900 border border-white/5 mb-2">
-                          <img
-                            src={p.imageUrl || ""}
-                            alt={p.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            referrerPolicy="no-referrer"
-                            crossOrigin="anonymous"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-xs font-black uppercase tracking-widest bg-amber-500 text-black px-3 py-1.5 rounded-lg">View</span>
-                          </div>
-                        </div>
-                        <p className="text-xs font-black uppercase tracking-tight text-white line-clamp-1">{p.name}</p>
-                        <p className="text-sm font-black text-amber-400">{p.price}</p>
-                      </motion.div>
-                    ))}
-                </div>
-              </div>
+              {/* Visual Discovery Chain - AI-Powered Taste Journey */}
+              <VisualDiscoveryChain
+                initialProductId={productId}
+                onProductClick={(id) => {
+                  navigate(`/product/${id}`);
+                }}
+                maxChainLength={6}
+              />
 
               {/* Info Card */}
               <motion.div

@@ -11,7 +11,11 @@ import {
 } from './db-init';
 
 // In-memory fallback for the sandbox environment
-let productEmbeddings: Map<number, number[]> = new Map();
+export let productEmbeddings: Map<number, number[]> = new Map();
+
+export function setProductEmbeddings(embeddings: Map<number, number[]>) {
+  productEmbeddings = embeddings;
+}
 let sellers: any[] = [];
 let syncLogs: any[] = [];
 let categories: any[] = [

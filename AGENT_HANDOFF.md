@@ -211,8 +211,8 @@ cosineSimilarity(a[], b[])
 - ✅ Backend tRPC endpoints created
 - ✅ Similarity search logic implemented
 - ✅ VisualDiscoveryChain component created
-- ⏳ ProductDetail.tsx needs integration (add VisualDiscoveryChain to sidebar)
-- ⏳ Frontend needs to call `trpc.products.getSimilar` instead of search
+- ✅ ProductDetail.tsx now integrates VisualDiscoveryChain
+- ✅ Frontend now calls `trpc.products.getSimilar` instead of search
 
 ---
 

@@ -4,6 +4,8 @@
  */
 
 import { generateRealProductData } from './db-real-data';
+import { RealSigLIPEmbeddings } from './services/siglip-real';
+import { setProductEmbeddings } from './db';
 
 let products: any[] = [];
 let _initPromise: Promise<void> | null = null;
@@ -28,6 +30,18 @@ export async function ensureProductsInitialized(): Promise<void> {
         const elapsed = Date.now() - startTime;
 
         console.log(`✅ Loaded ${products.length} products in ${elapsed}ms`);
+
+        // Generate and set embeddings
+        console.log("🧠 Generating SigLIP embeddings for products...");
+        const embeddingsArray = await RealSigLIPEmbeddings.generateBatchEmbeddings(
+          products.map(p => ({ name: p.name, description: p.description, imageUrl: p.imageUrl }))
+        );
+        const newEmbeddingsMap = new Map<number, number[]>();
+        products.forEach((p, index) => {
+          newEmbeddingsMap.set(p.id, embeddingsArray[index]);
+        });
+        setProductEmbeddings(newEmbeddingsMap);
+        console.log(`✅ Generated and set ${newEmbeddingsMap.size} product embeddings.`);
       }
       _initialized = true;
     } catch (error) {
