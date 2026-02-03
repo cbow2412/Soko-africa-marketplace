@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useStaticProducts } from "@/hooks/useStaticProducts";
-import { Heart, Search, Plus, MessageCircle, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin, Bell, Package } from "lucide-react";
+import { Heart, Search, Plus, User, Home as HomeIcon, Sparkles, TrendingUp, MapPin, Bell } from "lucide-react";
 
 interface Product {
   id: number;
@@ -204,23 +204,20 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Trending Button - Correctly Placed in Header */}
+          {/* Trending Button */}
           <button className="hidden lg:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all transform active:scale-95">
             <TrendingUp size={14} className="text-amber-500" /> Trending
           </button>
-          <button className="hidden sm:flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all transform active:scale-95 shadow-lg shadow-amber-500/10">
-            <Plus size={16} /> Sell
+          <button 
+            onClick={() => navigate("/seller/onboarding")}
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all transform active:scale-95 shadow-lg shadow-amber-500/10"
+          >
+            <Plus size={16} /> Ingest
           </button>
           <div className="h-8 w-[1px] bg-white/10 mx-1 hidden sm:block"></div>
           <button className="p-2.5 hover:bg-white/5 rounded-xl transition-colors relative group">
             <Bell size={20} className="text-slate-400 group-hover:text-white" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-amber-500 rounded-full border-2 border-black"></span>
-          </button>
-          <button 
-            onClick={() => navigate("/profile")}
-            className="p-2.5 hover:bg-white/5 rounded-xl transition-colors group"
-          >
-            <User size={20} className="text-slate-400 group-hover:text-white" />
           </button>
         </div>
       </div>
@@ -246,7 +243,7 @@ export default function Home() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all border ${
                   selectedCategory === cat.id
-                    ? "bg-white border-white text-black shadow-lg shadow-white/10"
+                    ? "bg-amber-500 border-amber-500 text-black"
                     : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
                 }`}
               >
@@ -270,10 +267,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Pinterest Masonry Grid - Refined Spacing and Arrangement */}
+        {/* Pinterest Masonry Grid */}
         <div className="px-4 py-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {/* We use a multi-column flex layout for better Pinterest-like masonry on web */}
             {Array.from({ length: 6 }).map((_, colIndex) => (
               <div key={colIndex} className={`flex flex-col gap-4 ${
                 colIndex >= 2 ? 'hidden sm:flex' : ''
@@ -318,7 +314,7 @@ export default function Home() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-between p-4">
                           <div className="flex justify-between items-start">
                             <span className="bg-amber-500 text-black text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-tighter">
-                              {product.source === 'nairobi_market' ? 'Authentic' : 'Verified'}
+                              {product.source === 'whatsapp_business' ? 'Real-Time' : 'Verified'}
                             </span>
                             <button
                               onClick={e => {
@@ -361,16 +357,16 @@ export default function Home() {
             {isLoadingData ? (
               <>
                 <div className="w-8 h-8 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin"></div>
-                <div className="text-slate-500 text-xs font-black tracking-widest uppercase">Loading more finds...</div>
+                <div className="text-slate-500 text-xs font-black tracking-widest uppercase">Syncing Nairobi...</div>
               </>
             ) : (
-              <div className="text-slate-700 text-[10px] font-black tracking-[0.2em] uppercase">End of Marketplace</div>
+              <div className="text-slate-700 text-[10px] font-black tracking-[0.2em] uppercase">End of Discovery</div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Bottom Navigation - Mobile */}
+      {/* Bottom Navigation - Mobile (Simplified) */}
       <div className="bg-black/90 backdrop-blur-md border-t border-white/10 px-6 py-4 flex justify-around items-center sm:hidden z-50">
         <button 
           onClick={() => {
@@ -381,14 +377,7 @@ export default function Home() {
           className={`flex flex-col items-center gap-1 transition-all ${!selectedCategory && !searchQuery ? 'text-amber-500' : 'text-slate-500 hover:text-white'}`}
         >
           <HomeIcon size={22} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Home</span>
-        </button>
-        <button 
-          onClick={() => navigate("/watchlist")}
-          className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
-        >
-          <Heart size={22} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Watchlist</span>
+          <span className="text-[8px] font-black uppercase tracking-widest">Discover</span>
         </button>
         <div className="relative -mt-12">
           <button 
@@ -399,18 +388,10 @@ export default function Home() {
           </button>
         </div>
         <button 
-          onClick={() => navigate("/orders")}
           className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
         >
-          <Package size={22} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Orders</span>
-        </button>
-        <button 
-          onClick={() => navigate("/profile")}
-          className="flex flex-col items-center gap-1 text-slate-500 hover:text-white transition-all"
-        >
-          <User size={22} />
-          <span className="text-[8px] font-black uppercase tracking-widest">Profile</span>
+          <TrendingUp size={22} />
+          <span className="text-[8px] font-black uppercase tracking-widest">Trending</span>
         </button>
       </div>
     </div>

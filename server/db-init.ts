@@ -1,9 +1,9 @@
 /**
  * Optimized Product Initialization Module
- * Handles lazy-loading of 2,050 Nairobi luxury products with error recovery
+ * Handles loading of the 100-artifact hot-swapped Meta CDN catalog
  */
 
-import { generateNairobiMarketData, WHATSAPP_BUSINESS_NUMBER } from './db-nairobi-data';
+import { generateRealProductData } from './db-real-data';
 
 let products: any[] = [];
 let _initPromise: Promise<void> | null = null;
@@ -19,16 +19,15 @@ export async function ensureProductsInitialized(): Promise<void> {
   _initPromise = (async () => {
     try {
       if (products.length === 0) {
-        console.log("🎯 Initializing High-Fidelity Nairobi Market Data");
-        console.log(`   Seller: +${WHATSAPP_BUSINESS_NUMBER}`);
-        console.log("   Volume: 2,050 Luxury Items");
-
+        console.log("🎯 Initializing High-Fidelity Meta CDN Catalog");
+        console.log("   Zero-Copy Architecture: Direct Meta CDN Links");
+        
         const startTime = Date.now();
-        products = generateNairobiMarketData(2050);
+        // Use the hot-swapped real data
+        products = generateRealProductData();
         const elapsed = Date.now() - startTime;
 
         console.log(`✅ Loaded ${products.length} products in ${elapsed}ms`);
-        console.log(`✅ All products linked to WhatsApp: +${WHATSAPP_BUSINESS_NUMBER}`);
       }
       _initialized = true;
     } catch (error) {

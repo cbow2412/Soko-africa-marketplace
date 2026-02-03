@@ -1,73 +1,70 @@
-# 🚀 Operation Vector Sync: Soko Discovery Hub
+# 🚀 Operation Vector Sync: Soko Discovery Hub (Enterprise Pivot)
 
 > **MASTER BLUEPRINT FOR ALL AGENTS**
-> This document is the absolute source of truth for the Soko Discovery Hub project. Any agent taking over this project MUST read this document first to maintain continuity and adhere to the established architecture.
+> **Vision:** A "Jumia-killer" that democratizes Kenyan commerce. We bridge the gap between WhatsApp Business inventory and high-end visual discovery.
+> **Core Principle:** Taste-driven discovery powered by modern vector search, sourced directly from the Meta CDN.
 
 ---
 
-## 📌 Project Vision
-**Soko Discovery Hub** is the "Pinterest of Nairobi" — a high-fidelity visual discovery marketplace. It bridges the gap between social commerce (WhatsApp/Instagram) and structured discovery.
+## 🏗️ Enterprise Architecture: "Zero-Copy Meta-Sync"
 
-## 🏗️ Core Architecture: "Zero-Copy Meta-Sync"
-Unlike traditional marketplaces, Soko does **not** store images on S3 or local disks.
+### 1. The Ingestor (The "Jumia-Killer" Engine)
+*   **Mechanism:** Businesses paste a WhatsApp link -> Our platform scrapes, vectorizes, and globalizes the product.
+*   **Zero-Copy:** No S3, no local storage. We leverage Meta's billion-dollar CDN infrastructure for image delivery.
+*   **Unique ID:** Product identification is tied to the Meta CDN/WhatsApp product ID.
 
-### 1. The Meta CDN Handshake
-*   **Source of Truth:** WhatsApp Business / Meta CDN links (`wa.me`, `fbcdn`, `scontent`).
-*   **Unique Identification:** Each product is uniquely identified by its Meta CDN link which contains a specific product ID.
-*   **Hot-Swapping:** Catalog updates are performed by "hot-swapping" URLs in the data layer (`server/db-real-data.ts`).
-
-### 2. Real-Time SigLIP Vectorization
-*   **Zero-Copy Processing:** Workers scrape Meta CDN links on-the-fly.
-*   **Hybrid Embeddings:** 768-dimension vectors (0.6 Image weight / 0.4 Text weight).
-*   **Vector DB:** Milvus stores the high-fidelity vectors for semantic search.
-*   **Infrastructure:** Leveraging Meta's billion-dollar CDN infrastructure for image delivery, bypassing the need for local storage.
+### 2. The Intelligence Layer (SigLIP + Milvus)
+*   **Vectorization:** 768-dimension hybrid embeddings (0.6 Image / 0.4 Text).
+*   **Search:** Semantic similarity search to "bridge taste" with available inventory.
+*   **Handshake:** Real-time synchronization between the scraped catalog and the Milvus vector database.
 
 ---
 
-## 🛠️ Tech Stack
-*   **Frontend:** React (Vite) - Pinterest-style masonry layout.
-*   **Backend:** Node.js (TypeScript) with PM2 process management.
-*   **Database:** Drizzle ORM (MySQL/TiDB) + Milvus (Vector Search).
-*   **AI/ML:** SigLIP (google/siglip-base-patch16-224) via Hugging Face Inference API or local fallback.
-*   **Deployment:** AWS EC2 (3.121.29.56) + Nginx Reverse Proxy.
+## 🛠️ Technical Stack & File Logic
+
+### Backend (`/server`)
+*   `index.ts`: Entry point, Express server, and API routing.
+*   `db-real-data.ts`: **Source of Truth for Catalog.** Contains the hot-swapped Meta CDN links.
+*   `services/siglip-real.ts`: The vectorization engine. Handles zero-copy image processing.
+*   `workers/`: Background tasks for scraping and vectorization.
+*   `db-init.ts`: Database initialization and seeding logic.
+
+### Frontend (`/client` or `/src`)
+*   *Pending Purge:* Removing mock elements (Watchlist, Profile, My Orders).
+*   *Core UI:* High-fidelity Pinterest-style masonry grid focused on discovery.
 
 ---
 
-## 📍 Deployment Details
-*   **Server IP:** `3.121.29.56`
-*   **Project Root:** `~/soko`
-*   **Backend Port:** `3000`
-*   **Health Check:** `http://3.121.29.56/health`
-*   **Process Manager:** PM2 (`soko-backend`)
+## 📍 Infrastructure
+*   **AWS EC2:** `3.121.29.56`
+*   **Status:** Industrial Build Active.
+*   **Health:** `http://3.121.29.56/health`
 
 ---
 
-## 📈 Roadmap & Current Status
+## 📈 Roadmap (Enterprise Phase)
 
-### Phase 1: Scorched Earth Reset (COMPLETED)
-- [x] Wiped stale builds and reset repository.
-- [x] Fixed Nginx routing and symlink errors.
-- [x] Verified initial SigLIP-Milvus handshake.
+### Phase 1: The Great Purge (ACTIVE)
+- [ ] Remove all non-functional mock buttons (Profile, Watchlist, Orders).
+- [ ] Eliminate unrealistic mock pricing.
+- [ ] Clean up UI to focus purely on the Discovery Hub.
 
-### Phase 2: Meta CDN Hot-Swap (ACTIVE)
-- [x] Extracted 100 unique WhatsApp Meta CDN links.
-- [x] Injected 100 links into `server/db-real-data.ts`.
-- [x] Pushed changes to GitHub and pulled to AWS server.
-- [ ] **NEXT:** Verify real-time vectorization of the new 100-artifact catalog.
+### Phase 2: Real-Time Integration
+- [ ] Connect the 100-artifact Meta CDN catalog directly to the Frontend.
+- [ ] Ensure SigLIP vector search is the primary driver for the "Discovery" feed.
+- [ ] Implement the "Paste Link" Ingestor UI for businesses.
 
-### Phase 3: Scaling & Optimization (PENDING)
-- [ ] Implement real-time WhatsApp scraper for automated link ingestion.
-- [ ] Optimize Milvus indexing for 10k+ artifacts.
-- [ ] Enhance "Pinterest-style" discovery UI with vector-based recommendations.
+### Phase 3: Globalization & Scaling
+- [ ] Automate the WhatsApp scraper for 10k+ items.
+- [ ] Refine the "Kenyan Market Taste" algorithm.
 
 ---
 
 ## ⚠️ Instructions for Future Agents
-1.  **NEVER** suggest moving images to S3. We use the Meta CDN directly.
-2.  **NEVER** perform a hard reset unless explicitly requested ("Scorched Earth").
-3.  **ALWAYS** verify the `/health` endpoint after a backend restart.
-4.  **ALWAYS** monitor PM2 logs (`pm2 logs soko-backend`) to ensure SigLIP workers are successfully scraping the Meta links.
-5.  **HOT-SWAP ONLY:** When updating the catalog, update the `db-real-data.ts` file and restart the process.
+1.  **NO MOCK DATA:** If it doesn't work or isn't real, remove it. We are building an enterprise platform.
+2.  **ZERO-COPY ONLY:** Never store images locally. Use the Meta CDN.
+3.  **SOURCE OF TRUTH:** This document (`MISSION_CONTROL.md`) must be updated after every major change.
+4.  **INTEGRITY:** Ensure the vectorization handshake is verified in logs (`pm2 logs`) after every catalog update.
 
 ---
 *Last Updated: Feb 03, 2026*

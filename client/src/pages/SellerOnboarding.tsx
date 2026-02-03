@@ -4,11 +4,10 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, AlertCircle, ArrowRight, Store, MessageSquare } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowRight, MessageSquare, Zap, ShieldCheck, Globe } from "lucide-react";
 
 export default function SellerOnboarding() {
   const [, setLocation] = useLocation();
@@ -28,10 +27,10 @@ export default function SellerOnboarding() {
   const registerMutation = trpc.admin.triggerSync.useMutation({
     onSuccess: (data) => {
       if (data.success) {
-        setSellerId(1); // Mock ID
-        toast.success("Registration successful! Starting catalog sync...");
+        setSellerId(1); // Mock ID for the session
+        toast.success("Ingestion started! Vectorizing your catalog...");
       } else {
-        toast.error("Registration failed");
+        toast.error("Ingestion failed to initialize");
         setIsSubmitting(false);
       }
     },
@@ -41,7 +40,7 @@ export default function SellerOnboarding() {
     },
   });
 
-  const { data: statusData, refetch: refetchStatus } = trpc.admin.getStats.useQuery(undefined, {
+  const { data: statusData } = trpc.admin.getStats.useQuery(undefined, {
     enabled: !!sellerId,
     refetchInterval: 3000
   }) as any;
@@ -61,53 +60,53 @@ export default function SellerOnboarding() {
   if (sellerId) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-white">
+        <Card className="w-full max-w-md bg-zinc-900 border-zinc-800 text-white shadow-2xl">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="text-amber-500 w-10 h-10" />
             </div>
-            <CardTitle className="text-2xl font-black uppercase tracking-tighter">Registration Complete!</CardTitle>
+            <CardTitle className="text-2xl font-black uppercase tracking-tighter">Vector Sync Active</CardTitle>
             <CardDescription className="text-zinc-400">
-              Your store <strong>{formData.businessName}</strong> is being set up.
+              Globalizing <strong>{formData.businessName}</strong> on Soko Africa.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-black/50 rounded-xl p-4 border border-zinc-800">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Sync Status</span>
+                <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Sync Engine Status</span>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${
                   syncStatus?.status === 'completed' ? 'bg-green-500/20 text-green-500' : 'bg-amber-500/20 text-amber-500 animate-pulse'
                 }`}>
-                  {syncStatus?.status || 'Processing'}
+                  {syncStatus?.status || 'Vectorizing'}
                 </span>
               </div>
               
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">Products Found</span>
+                  <span className="text-zinc-400">Meta CDN Links Scraped</span>
                   <span className="font-bold">{syncStatus?.productsScraped || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">AI Approved</span>
-                  <span className="font-bold text-green-500">{syncStatus?.productsApproved || 0}</span>
+                  <span className="text-zinc-400">SigLIP Vectors Generated</span>
+                  <span className="font-bold text-amber-500">{syncStatus?.productsApproved || 0}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-zinc-400">Flagged/Rejected</span>
-                  <span className="font-bold text-red-500">{syncStatus?.productsRejected || 0}</span>
+                  <span className="text-zinc-400">Milvus Indexing</span>
+                  <span className="font-bold text-green-500">Active</span>
                 </div>
               </div>
             </div>
 
-            <div className="text-center text-xs text-zinc-500">
-              Our Gemini AI is currently analyzing your catalog for quality and authenticity.
+            <div className="text-center text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+              Zero-Copy Architecture: No images are stored. Directly leveraging Meta Infrastructure.
             </div>
           </CardContent>
           <CardFooter>
             <Button 
               onClick={() => setLocation("/")}
-              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-black uppercase tracking-widest py-6 rounded-xl"
+              className="w-full bg-amber-500 hover:bg-amber-600 text-black font-black uppercase tracking-widest py-6 rounded-xl transition-all"
             >
-              Go to Marketplace <ArrowRight className="ml-2 w-4 h-4" />
+              Enter Discovery Hub <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </CardFooter>
         </Card>
@@ -120,11 +119,11 @@ export default function SellerOnboarding() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <Store className="text-black w-7 h-7" />
+            <Zap className="text-black w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">Seller Onboarding</h1>
-            <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mt-1">Join the Soko Africa Network</p>
+            <h1 className="text-3xl font-black uppercase tracking-tighter leading-none">WhatsApp Ingestor</h1>
+            <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest mt-1">Globalize your business in seconds</p>
           </div>
         </div>
 
@@ -133,8 +132,8 @@ export default function SellerOnboarding() {
             <Card className="bg-zinc-900 border-zinc-800 text-white shadow-2xl">
               <form onSubmit={handleSubmit}>
                 <CardHeader>
-                  <CardTitle className="text-xl font-black uppercase tracking-tight">Store Details</CardTitle>
-                  <CardDescription className="text-zinc-400">Tell us about your business and provide your WhatsApp catalog.</CardDescription>
+                  <CardTitle className="text-xl font-black uppercase tracking-tight">Enterprise Ingestion</CardTitle>
+                  <CardDescription className="text-zinc-400">Paste your WhatsApp Business catalog to bridge taste with the Kenyan market.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -142,7 +141,7 @@ export default function SellerOnboarding() {
                       <Label htmlFor="businessName" className="text-xs font-black uppercase tracking-widest text-zinc-500">Business Name</Label>
                       <Input 
                         id="businessName" 
-                        placeholder="e.g. Gikomba Rare Finds" 
+                        placeholder="e.g. Nairobi Elite Collections" 
                         className="bg-black border-zinc-800 focus:border-amber-500 transition-colors h-12"
                         value={formData.businessName}
                         onChange={(e) => setFormData({...formData, businessName: e.target.value})}
@@ -150,7 +149,7 @@ export default function SellerOnboarding() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="whatsappNumber" className="text-xs font-black uppercase tracking-widest text-zinc-500">WhatsApp Number</Label>
+                      <Label htmlFor="whatsappNumber" className="text-xs font-black uppercase tracking-widest text-zinc-500">Business WhatsApp</Label>
                       <Input 
                         id="whatsappNumber" 
                         placeholder="+254..." 
@@ -163,7 +162,7 @@ export default function SellerOnboarding() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="catalogUrl" className="text-xs font-black uppercase tracking-widest text-zinc-500">WhatsApp Catalog URL</Label>
+                    <Label htmlFor="catalogUrl" className="text-xs font-black uppercase tracking-widest text-zinc-500">WhatsApp Catalog Link</Label>
                     <div className="relative">
                       <Input 
                         id="catalogUrl" 
@@ -175,30 +174,29 @@ export default function SellerOnboarding() {
                       />
                       <MessageSquare className="absolute left-3 top-3.5 text-zinc-600 w-5 h-5" />
                     </div>
-                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-tight">Paste your WhatsApp Business catalog link here.</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-black uppercase tracking-widest text-zinc-500">Primary Category</Label>
+                      <Label className="text-xs font-black uppercase tracking-widest text-zinc-500">Primary Inventory Type</Label>
                       <Select 
                         value={formData.category} 
                         onValueChange={(val) => setFormData({...formData, category: val})}
                       >
                         <SelectTrigger className="bg-black border-zinc-800 h-12">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent className="bg-zinc-900 border-zinc-800 text-white">
-                          <SelectItem value="Fashion">Fashion</SelectItem>
                           <SelectItem value="Shoes">Shoes</SelectItem>
+                          <SelectItem value="Dresses">Dresses</SelectItem>
                           <SelectItem value="Furniture">Furniture</SelectItem>
-                          <SelectItem value="Electronics">Electronics</SelectItem>
+                          <SelectItem value="Jewelry">Jewelry</SelectItem>
                           <SelectItem value="Accessories">Accessories</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="city" className="text-xs font-black uppercase tracking-widest text-zinc-500">City/Location</Label>
+                      <Label htmlFor="city" className="text-xs font-black uppercase tracking-widest text-zinc-500">Hub Location</Label>
                       <Input 
                         id="city" 
                         placeholder="Nairobi" 
@@ -208,30 +206,19 @@ export default function SellerOnboarding() {
                       />
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-xs font-black uppercase tracking-widest text-zinc-500">Store Description</Label>
-                    <Textarea 
-                      id="description" 
-                      placeholder="Tell buyers what makes your store special..." 
-                      className="bg-black border-zinc-800 focus:border-amber-500 transition-colors min-h-[100px]"
-                      value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    />
-                  </div>
                 </CardContent>
                 <CardFooter>
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-black font-black uppercase tracking-widest py-6 rounded-xl shadow-lg shadow-amber-500/20 transition-all transform active:scale-[0.98]"
+                    className="w-full bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest py-6 rounded-xl shadow-lg shadow-amber-500/20 transition-all transform active:scale-[0.98]"
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Processing...
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Vectorizing Catalog...
                       </>
                     ) : (
-                      "Register & Start Sync"
+                      "Globalize Inventory"
                     )}
                   </Button>
                 </CardFooter>
@@ -241,38 +228,30 @@ export default function SellerOnboarding() {
 
           <div className="space-y-6">
             <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6">
-              <h3 className="text-sm font-black uppercase tracking-widest text-amber-500 mb-4">How it works</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-amber-500 mb-4">Enterprise Engine</h3>
               <div className="space-y-4">
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-zinc-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">1</div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">Register your store with your WhatsApp catalog link.</p>
+                  <Zap size={18} className="text-amber-500 shrink-0" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-tighter">Real-Time Sync</p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Directly bridges your WhatsApp inventory to our global discovery hub.</p>
+                  </div>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-zinc-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">2</div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">Our AI scraper visits your catalog and extracts all products.</p>
+                  <ShieldCheck size={18} className="text-amber-500 shrink-0" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-tighter">SigLIP Vectorization</p>
+                    <p className="text-[10px] text-zinc-500 mt-1">Advanced AI analyzes your products to match with buyer taste profiles.</p>
+                  </div>
                 </div>
                 <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-zinc-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">3</div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">Gemini AI performs quality control and approves your items.</p>
-                </div>
-                <div className="flex gap-3">
-                  <div className="w-6 h-6 bg-zinc-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">4</div>
-                  <p className="text-xs text-zinc-400 leading-relaxed">Your products go live on the Soko Africa Pinterest grid!</p>
+                  <Globe size={18} className="text-amber-500 shrink-0" />
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-tighter">Zero-Copy Architecture</p>
+                    <p className="text-[10px] text-zinc-500 mt-1">We never store your images. We use Meta's global CDN for maximum speed.</p>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="text-amber-500 w-4 h-4" />
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-amber-500">Requirements</h3>
-              </div>
-              <ul className="text-[10px] text-zinc-400 space-y-2 font-bold uppercase tracking-tight">
-                <li>• Active WhatsApp Business Account</li>
-                <li>• Public Catalog enabled</li>
-                <li>• Clear product images</li>
-                <li>• Accurate pricing in KES</li>
-              </ul>
             </div>
           </div>
         </div>

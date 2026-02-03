@@ -1,29 +1,19 @@
-// import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Heart, ArrowLeft, Share2, MessageCircle, Star, ChevronRight, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { Heart, ArrowLeft, Share2, MessageCircle, Star, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useEffect } from "react";
 
 export default function ProductDetail() {
   const [location, navigate] = useLocation();
   const productId = parseInt(location.split("/").pop() || "0");
-  // const { user, isAuthenticated } = useAuth();
-  const user = null;
-  const isAuthenticated = false;
   const [isSaved, setIsSaved] = useState(false);
 
   // Fetch product details
   const { data: product, isLoading } = trpc.products.getById.useQuery({
     id: productId,
   });
-
-  // Fetch seller details
-  const { data: seller } = trpc.admin.getStats.useQuery(undefined, { enabled: !!product }) as any;
-
-  // Fetch comments
-  const comments: any[] = [];
 
   // Fetch similar products using AI Visual Similarity
   const { data: similarProducts, refetch: refetchSimilar } = trpc.products.search.useQuery(
@@ -41,10 +31,10 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-slate-700 border-t-amber-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading product details...</p>
+          <div className="w-12 h-12 border-4 border-zinc-800 border-t-amber-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-zinc-500 font-black uppercase tracking-widest text-xs">Vectorizing details...</p>
         </div>
       </div>
     );
@@ -52,11 +42,11 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-400 mb-4">Product not found</p>
-          <Button onClick={() => navigate("/")} className="bg-amber-600 hover:bg-amber-700">
-            Back to Marketplace
+          <p className="text-zinc-500 mb-4">Product not found</p>
+          <Button onClick={() => navigate("/")} className="bg-amber-500 hover:bg-amber-600 text-black">
+            Back to Discovery
           </Button>
         </div>
       </div>
@@ -65,10 +55,9 @@ export default function ProductDetail() {
 
   const handleWhatsAppChat = () => {
     if (product) {
-      // Hard-wired to the primary business number
-      const sellerPhone = "254756185209";
+      const sellerPhone = "254756185209"; // Primary business number
       const message = encodeURIComponent(
-        `Hi! I'm interested in your product: ${product.name}\n\nPrice: KES ${product.price}\n\nIs this available for delivery?`
+        `Hi! I'm interested in your product on Soko Africa: ${product.name}\n\nPrice: ${product.price}\n\nLink: ${window.location.href}`
       );
       const whatsappUrl = `https://wa.me/${sellerPhone}?text=${message}`;
       window.open(whatsappUrl, "_blank");
@@ -79,31 +68,30 @@ export default function ProductDetail() {
     if (navigator.share) {
       navigator.share({
         title: product.name,
-        text: `Check out this product: ${product.name} - KES ${product.price}`,
+        text: `Check out this find on Soko Africa: ${product.name} - ${product.price}`,
         url: window.location.href,
       });
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      toast.success("Link copied to clipboard!");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-white/5">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/")}
-            className="text-slate-300 hover:text-white"
+            className="text-zinc-400 hover:text-white hover:bg-white/5"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Marketplace
+            Discover
           </Button>
-          <h1 className="text-xl font-bold text-white">Product Details</h1>
+          <h1 className="text-sm font-black uppercase tracking-widest">Product Details</h1>
           <div className="w-20"></div>
         </div>
       </header>
@@ -113,22 +101,19 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Product Image */}
           <div className="lg:col-span-2">
-            <Card className="bg-slate-800 border-slate-700 overflow-hidden">
-              <div className="relative bg-slate-900 aspect-square overflow-hidden">
+            <Card className="bg-zinc-900 border-zinc-800 overflow-hidden rounded-3xl">
+              <div className="relative aspect-square overflow-hidden">
                 {product.imageUrl ? (
                   <img
                     src={product.imageUrl}
                     alt={product.name}
                     className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-500">
-                    <div className="text-center">
-                      <div className="w-20 h-20 mx-auto mb-4 bg-slate-800 rounded-lg flex items-center justify-center">
-                        <span className="text-4xl">📦</span>
-                      </div>
-                      <p>No image available</p>
-                    </div>
+                  <div className="w-full h-full flex items-center justify-center bg-zinc-950">
+                    <Sparkles className="w-12 h-12 text-zinc-800" />
                   </div>
                 )}
                 <button
@@ -149,7 +134,7 @@ export default function ProductDetail() {
                     className="flex-1 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest py-7 rounded-2xl shadow-2xl shadow-amber-500/20 transition-all transform active:scale-95 border-none"
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
-                    Buy Now
+                    Buy on WhatsApp
                   </Button>
                   <button 
                     onClick={handleShare}
@@ -163,194 +148,70 @@ export default function ProductDetail() {
 
             {/* Product Info */}
             <div className="mt-8">
-              <h1 className="text-4xl font-bold text-white mb-4">{product.name}</h1>
-              <p className="text-slate-300 text-lg mb-6">{product.description}</p>
-
-              {/* Price and Stock */}
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <Card className="bg-slate-800 border-slate-700 p-6">
-                  <p className="text-slate-400 text-sm mb-2">Price</p>
-                  <p className="text-3xl font-bold text-amber-500">KES {product.price}</p>
-                </Card>
-                <Card className="bg-slate-800 border-slate-700 p-6">
-                  <p className="text-slate-400 text-sm mb-2">Stock Available</p>
-                  <p className="text-3xl font-bold text-green-500">{product.stock} units</p>
-                </Card>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
+                  {product.source === 'whatsapp_business' ? 'Real-Time Sync' : 'Verified'}
+                </span>
+                <span className="text-zinc-500 text-[10px] font-black uppercase tracking-widest">
+                  ID: {product.id}
+                </span>
               </div>
+              <h1 className="text-4xl font-black tracking-tighter text-white mb-4 uppercase">{product.name}</h1>
+              <p className="text-zinc-400 text-lg mb-8 leading-relaxed">{product.description}</p>
 
-              {/* Metadata Badges */}
-              <div className="flex flex-wrap gap-3 mb-8">
-                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
-                  <ShieldCheck className="w-3 h-3 text-green-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Authentic</span>
-                </div>
-                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
-                  <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Top Rated</span>
-                </div>
-                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">AI Verified</span>
-                </div>
-                <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl flex items-center gap-2">
-                  <Zap className="w-3 h-3 text-blue-500" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fast Delivery</span>
+              {/* Price and Metadata */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <Card className="bg-zinc-900 border-zinc-800 p-6 rounded-2xl">
+                  <p className="text-zinc-500 text-[10px] font-black uppercase tracking-widest mb-2">Price Point</p>
+                  <p className="text-4xl font-black text-amber-500 uppercase">{product.price}</p>
+                </Card>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col justify-center items-center text-center">
+                    <ShieldCheck className="w-5 h-5 text-amber-500 mb-2" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Authentic</span>
+                  </div>
+                  <div className="bg-white/5 border border-white/5 p-4 rounded-2xl flex flex-col justify-center items-center text-center">
+                    <Zap className="w-5 h-5 text-amber-500 mb-2" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Fast Ingest</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Similar Discoveries */}
           <div className="lg:col-span-1">
-            {/* Seller Card */}
-            {seller && (
-              <Card className="bg-slate-800 border-slate-700 p-6 mb-6">
-                <h3 className="text-lg font-bold text-white mb-4">Seller Information</h3>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-slate-400 text-sm mb-1">Store Name</p>
-                    <p className="text-white font-semibold">{seller.storeName}</p>
+            <h3 className="text-sm font-black uppercase tracking-widest text-amber-500 mb-6 flex items-center gap-2">
+              <Sparkles size={16} /> Similar Discoveries
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              {similarProducts?.filter(p => p.id !== product.id).slice(0, 4).map(p => (
+                <div 
+                  key={p.id}
+                  onClick={() => navigate(`/product/${p.id}`)}
+                  className="aspect-square bg-zinc-900 rounded-2xl overflow-hidden cursor-pointer group relative border border-white/5"
+                >
+                  <img 
+                    src={p.imageUrl || ""} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    alt={p.name}
+                    referrerPolicy="no-referrer"
+                    crossOrigin="anonymous"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span className="text-[8px] font-black uppercase tracking-widest bg-amber-500 text-black px-2 py-1 rounded">View</span>
                   </div>
-                  <div>
-                    <p className="text-slate-400 text-sm mb-1">Description</p>
-                    <p className="text-slate-300 text-sm">{seller.description}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < Math.floor(parseFloat(seller.rating || "0"))
-                              ? "fill-amber-500 text-amber-500"
-                              : "text-slate-600"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-amber-500 font-semibold">
-                      {seller.rating || "0"}
-                    </span>
-                  </div>
-                  <Button
-                    onClick={handleWhatsAppChat}
-                    className="w-full bg-green-600 hover:bg-green-700 mt-4"
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    Contact Seller
-                  </Button>
                 </div>
-              </Card>
-            )}
-
-            {/* Product Specs */}
-            <Card className="bg-slate-800 border-slate-700 p-6">
-              <h3 className="text-lg font-bold text-white mb-4">Product Details</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Category</span>
-                  <span className="text-white">Product</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Condition</span>
-                  <span className="text-white">New</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Source</span>
-                  <span className="text-white">Nairobi Market</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">SKU</span>
-                  <span className="text-white font-mono text-sm">#{product.id}</span>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        {/* Similar Products Section */}
-        {similarProducts && similarProducts.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-amber-500" />
-              <span>Visual Similarity Search</span>
-              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 bg-amber-500/10 text-amber-500 rounded-lg border border-amber-500/20">SigLIP AI</span>
-            </h2>
-            <div className="columns-2 sm:columns-3 lg:columns-5 gap-4 space-y-4">
-              {similarProducts.map((similar: any, index: number) => {
-                // Generate a pseudo-random height for masonry effect
-                const heights = [200, 250, 300, 220, 280];
-                const cardHeight = heights[index % heights.length];
-                
-                return (
-                  <div
-                    key={similar.id}
-                    onClick={() => navigate(`/product/${similar.id}`)}
-                    className="break-inside-avoid bg-white/5 rounded-3xl overflow-hidden cursor-pointer group relative hover:ring-2 hover:ring-amber-500/50 transition-all duration-300"
-                  >
-                    <div style={{ height: `${cardHeight}px` }} className="relative overflow-hidden">
-                      <img
-                        src={similar.imageUrl || "https://via.placeholder.com/300?text=No+Image"}
-                        alt={similar.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                        <div className="text-white text-xs font-black leading-tight line-clamp-2 mb-1">
-                          {similar.name}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="text-amber-400 font-black text-sm">{similar.price}</div>
-                          <div className="bg-amber-500 text-black text-[8px] font-black px-1.5 py-0.5 rounded uppercase">
-                            {(similar.similarity * 100).toFixed(0)}% Match
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Comments Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-white mb-6">Reviews & Comments</h2>
-          {comments.length > 0 ? (
-            <div className="grid gap-4">
-              {comments.map(comment => (
-                <Card key={comment.id} className="bg-slate-800 border-slate-700 p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="text-white font-semibold">Anonymous User</p>
-                      <p className="text-slate-400 text-sm">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {comment.rating !== null && (
-                      <div className="flex gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < (comment.rating || 0)
-                                ? "fill-amber-500 text-amber-500"
-                                : "text-slate-600"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-slate-300">{comment.text}</p>
-                </Card>
               ))}
             </div>
-          ) : (
-            <Card className="bg-slate-800 border-slate-700 p-8 text-center">
-              <p className="text-slate-400">No reviews yet. Be the first to review!</p>
-            </Card>
-          )}
+            
+            <div className="mt-8 p-6 bg-zinc-900/50 border border-zinc-800 rounded-3xl">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-4">Discovery Engine</p>
+              <p className="text-xs text-zinc-400 leading-relaxed italic">
+                "Our SigLIP AI analyzes visual taste patterns to find products that match your aesthetic, sourced directly from the Kenyan market."
+              </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
